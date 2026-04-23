@@ -81,11 +81,8 @@ checkRole(['admin']);
     letter-spacing: 0.6px;
   }
 
-  .po-card-body {
-    padding: 24px;
-  }
+  .po-card-body { padding: 24px; }
 
-  /* Upload zone */
   .upload-zone {
     border: 2px dashed #d0d5dd;
     border-radius: 12px;
@@ -117,13 +114,8 @@ checkRole(['admin']);
 
   .upload-icon svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 1.8; }
 
-  .upload-zone h3 {
-    font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px;
-  }
-
-  .upload-zone p {
-    font-size: 13px; color: #888;
-  }
+  .upload-zone h3 { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+  .upload-zone p  { font-size: 13px; color: #888; }
 
   .upload-zone .file-chosen {
     display: none;
@@ -143,20 +135,10 @@ checkRole(['admin']);
     min-height: 20px;
   }
 
-  /* Form grid */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-grid.single { grid-template-columns: 1fr; }
 
-  .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
 
   .field-group label {
     font-size: 12px;
@@ -188,7 +170,6 @@ checkRole(['admin']);
 
   .field-group input::placeholder { color: #bbb; }
 
-  /* Items section */
   .items-toolbar {
     display: flex;
     align-items: center;
@@ -196,16 +177,8 @@ checkRole(['admin']);
     margin-bottom: 16px;
   }
 
-  .items-count {
-    font-size: 13px;
-    color: #888;
-    font-weight: 500;
-  }
-
-  .items-count span {
-    color: #1a1a2e;
-    font-weight: 700;
-  }
+  .items-count { font-size: 13px; color: #888; font-weight: 500; }
+  .items-count span { color: #1a1a2e; font-weight: 700; }
 
   #items-wrapper {
     display: grid;
@@ -220,22 +193,17 @@ checkRole(['admin']);
     padding: 16px;
     position: relative;
     transition: box-shadow 0.2s, border-color 0.2s;
+    animation: cardIn 0.2s ease both;
   }
 
-  .item-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-    border-color: #d0d5dd;
-  }
+  .item-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); border-color: #d0d5dd; }
 
   .item-card-num {
-    position: absolute;
-    top: 12px; right: 12px;
+    position: absolute; top: 12px; right: 12px;
     width: 22px; height: 22px;
-    background: #1a1a2e;
-    color: #fff;
+    background: #1a1a2e; color: #fff;
     border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 11px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     font-family: 'DM Mono', monospace;
   }
@@ -243,74 +211,45 @@ checkRole(['admin']);
   .item-card .field-group { margin-bottom: 10px; }
   .item-card .field-group:last-of-type { margin-bottom: 0; }
 
-  .item-card .field-group input {
-    height: 38px;
-    font-size: 13px;
-    background: #fff;
-  }
-
-  .item-card .field-group label {
-    font-size: 11px;
-  }
+  .item-card .field-group input { height: 38px; font-size: 13px; background: #fff; }
+  .item-card .field-group label { font-size: 11px; }
 
   .btn-remove {
-    margin-top: 12px;
-    width: 100%;
-    padding: 7px;
-    background: #fff0f0;
-    border: 1.5px solid #ffd6d6;
-    border-radius: 8px;
-    color: #d93025;
-    font-size: 12px;
-    font-weight: 600;
+    margin-top: 12px; width: 100%; padding: 7px;
+    background: #fff0f0; border: 1.5px solid #ffd6d6;
+    border-radius: 8px; color: #d93025;
+    font-size: 12px; font-weight: 600;
     font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: background 0.15s;
+    cursor: pointer; transition: background 0.15s;
   }
 
   .btn-remove:hover { background: #ffe0e0; }
 
-  /* Buttons */
   .form-actions {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
+    max-width: 900px; margin: 0 auto;
+    display: flex; gap: 12px; justify-content: flex-end;
   }
 
   .btn-add {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
     padding: 9px 16px;
-    background: #f0f2f5;
-    border: 1.5px solid #e0e3e8;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a1a2e;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: background 0.15s;
+    background: #f0f2f5; border: 1.5px solid #e0e3e8;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+    color: #1a1a2e; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: background 0.15s;
   }
 
   .btn-add:hover { background: #e4e7ec; }
 
   .btn-submit {
     padding: 12px 32px;
-    background: #1a1a2e;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
+    background: #1a1a2e; color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
     font-family: 'DM Sans', sans-serif;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
   }
 
   .btn-submit:hover { background: #2d2d4e; }
@@ -318,40 +257,24 @@ checkRole(['admin']);
 
   .btn-secondary {
     padding: 12px 24px;
-    background: #fff;
-    color: #555;
+    background: #fff; color: #555;
     border: 1.5px solid #e0e3e8;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 10px; font-size: 14px; font-weight: 500;
     font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: background 0.15s;
+    cursor: pointer; transition: background 0.15s;
   }
 
   .btn-secondary:hover { background: #f5f5f5; }
 
-  /* Spinner */
   .spinner {
-    display: inline-block;
-    width: 14px; height: 14px;
-    border: 2px solid #ccc;
-    border-top-color: #1a1a2e;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #ccc; border-top-color: #1a1a2e;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 6px;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Animate item cards in */
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .item-card { animation: cardIn 0.2s ease both; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="po-page">
@@ -366,9 +289,10 @@ checkRole(['admin']);
     </div>
   </div>
 
-  <form method="POST" action="save_po.php" enctype="multipart/form-data">
+  <form method="POST" action="save_po.php" enctype="multipart/form-data" id="po-form">
 
-    <!-- Upload -->
+    <input type="hidden" name="checked_pdf_name" id="checked_pdf_name">
+
     <div class="po-card">
       <div class="po-card-header">
         <div class="section-dot"></div>
@@ -388,7 +312,6 @@ checkRole(['admin']);
       </div>
     </div>
 
-    <!-- PO Details -->
     <div class="po-card">
       <div class="po-card-header">
         <div class="section-dot"></div>
@@ -430,7 +353,6 @@ checkRole(['admin']);
       </div>
     </div>
 
-    <!-- Items -->
     <div class="po-card">
       <div class="po-card-header">
         <div class="section-dot"></div>
@@ -444,13 +366,10 @@ checkRole(['admin']);
             Add Item
           </button>
         </div>
-        <div id="items-wrapper">
-          <!-- Cards rendered here -->
-        </div>
+        <div id="items-wrapper"></div>
       </div>
     </div>
 
-    <!-- Actions -->
     <div class="form-actions">
       <button type="button" class="btn-secondary" onclick="history.back()">Cancel</button>
       <button type="submit" class="btn-submit">
@@ -463,49 +382,110 @@ checkRole(['admin']);
 </div>
 
 <script>
-// Init with one blank card
 renderItems([{ item_code: '', item_desc: '', qty: '' }]);
 
-// PDF upload handler
-document.getElementById('po_pdf').addEventListener('change', function () {
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+document.getElementById('po-form').addEventListener('submit', function (e) {
+  const poNum = (document.getElementById('po_number').value || '').trim();
+  if (poNum) sessionStorage.setItem('po_created', poNum);
+
+  const pdfInput = document.getElementById('po_pdf');
+  const checkedPdfName = document.getElementById('checked_pdf_name').value.trim();
+
+  if (pdfInput.files.length > 0) {
+    const selectedName = pdfInput.files[0].name.trim();
+    if (!checkedPdfName || checkedPdfName !== selectedName) {
+      e.preventDefault();
+      const status = document.getElementById('pdf-status');
+      status.style.color = '#c62828';
+      status.innerHTML = '❌ Please wait for PDF duplicate check before saving.';
+    }
+  }
+});
+
+document.getElementById('po_pdf').addEventListener('change', async function () {
   const file = this.files[0];
   if (!file) return;
 
-  document.getElementById('file-name').textContent = file.name;
-  document.getElementById('file-chosen').style.display = 'block';
-
   const status = document.getElementById('pdf-status');
+  const fileChosen = document.getElementById('file-chosen');
+  const fileName = document.getElementById('file-name');
+
+  fileName.textContent = file.name;
+  fileChosen.style.display = 'block';
+  document.getElementById('checked_pdf_name').value = '';
+
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    status.style.color = '#c62828';
+    status.innerHTML = '❌ Only PDF files are allowed.';
+    this.value = '';
+    fileChosen.style.display = 'none';
+    return;
+  }
+
   status.style.color = '#555';
-  status.innerHTML = '<span class="spinner"></span> Extracting data from PDF...';
+  status.innerHTML = '<span class="spinner"></span> Checking whether this PDF is already uploaded…';
 
-  const formData = new FormData();
-  formData.append('po_pdf', file);
+  try {
+    const checkFormData = new FormData();
+    checkFormData.append('pdf_name', file.name);
 
-  fetch('extract_pdf_items.php', { method: 'POST', body: formData })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        fillHeader(data.header);
-        if (data.items && data.items.length > 0) {
-          renderItems(data.items);
-          status.style.color = '#2e7d32';
-          status.innerHTML = '✅ ' + data.items.length + ' item(s) extracted. Select Platform to continue.';
-        } else {
-          status.style.color = '#e65100';
-          status.innerHTML = '⚠️ Header filled but no items found. Please add items manually.';
-        }
-      } else {
-        status.style.color = '#c62828';
-        status.innerHTML = '❌ ' + (data.message || 'Could not extract data.');
-      }
-    })
-    .catch(err => {
-      status.style.color = '#c62828';
-      status.innerHTML = '❌ Error: ' + err.message;
+    const checkResponse = await fetch('check_pdf_exists.php', {
+      method: 'POST',
+      body: checkFormData
     });
+
+    const checkData = await checkResponse.json();
+
+    if (checkData.exists) {
+      status.style.color = '#c62828';
+      status.innerHTML = '❌ This PDF is already uploaded: <b>' + escapeHtml(file.name) + '</b>';
+      this.value = '';
+      fileChosen.style.display = 'none';
+      clearHeader();
+      renderItems([{ item_code: '', item_desc: '', qty: '' }]);
+      return;
+    }
+
+    document.getElementById('checked_pdf_name').value = file.name;
+
+    status.style.color = '#555';
+    status.innerHTML = '<span class="spinner"></span> Extracting data from PDF…';
+
+    const formData = new FormData();
+    formData.append('po_pdf', file);
+
+    const res = await fetch('extract_pdf_items.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      fillHeader(data.header);
+      if (data.items && data.items.length > 0) {
+        renderItems(data.items);
+        status.style.color = '#2e7d32';
+        status.innerHTML = '✅ ' + data.items.length + ' item(s) extracted. Select Platform to continue.';
+      } else {
+        status.style.color = '#e65100';
+        status.innerHTML = '⚠️ Header filled but no items found. Please add items manually.';
+      }
+    } else {
+      status.style.color = '#c62828';
+      status.innerHTML = '❌ ' + (data.message || 'Could not extract data.');
+    }
+
+  } catch (err) {
+    status.style.color = '#c62828';
+    status.innerHTML = '❌ Error: ' + err.message;
+  }
 });
 
-// Drag-over effect
 const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
 zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
@@ -513,15 +493,22 @@ zone.addEventListener('drop', () => zone.classList.remove('dragover'));
 
 function fillHeader(h) {
   if (!h) return;
-  if (h.po_number)    setVal('po_number',    h.po_number);
+  if (h.po_number)    setVal('po_number', h.po_number);
   if (h.release_date) setVal('release_date', h.release_date);
-  if (h.expiry_date)  setVal('expiry_date',  h.expiry_date);
+  if (h.expiry_date)  setVal('expiry_date', h.expiry_date);
   if (h.factory_name) setVal('factory_name', h.factory_name);
+}
+
+function clearHeader() {
+  setVal('po_number', '');
+  setVal('release_date', '');
+  setVal('expiry_date', '');
+  setVal('factory_name', '');
 }
 
 function setVal(id, val) {
   const el = document.getElementById(id);
-  if (el && val) el.value = val;
+  if (el) el.value = val || '';
 }
 
 function renderItems(items) {
@@ -548,20 +535,17 @@ function makeCard(item, index) {
 
 function addItem() {
   const wrapper = document.getElementById('items-wrapper');
-  const index = wrapper.children.length;
-  wrapper.appendChild(makeCard({ item_code: '', item_desc: '', qty: '' }, index));
+  wrapper.appendChild(makeCard({ item_code: '', item_desc: '', qty: '' }, wrapper.children.length));
   updateCount();
 }
 
 function removeCard(btn) {
   btn.closest('.item-card').remove();
-  // Re-number remaining cards
   document.querySelectorAll('.item-card').forEach((card, i) => {
     const num = card.querySelector('.item-card-num');
     if (num) num.textContent = i + 1;
-    // Show/hide remove button on first card
-    const removeBtn = card.querySelector('.btn-remove');
-    if (i === 0 && removeBtn) removeBtn.remove();
+    const rb = card.querySelector('.btn-remove');
+    if (i === 0 && rb) rb.remove();
   });
   updateCount();
 }
@@ -574,6 +558,18 @@ function updateCount() {
 function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    })[m];
+  });
 }
 </script>
 

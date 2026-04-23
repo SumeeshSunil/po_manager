@@ -11,7 +11,7 @@ $poResult = $poStmt->get_result();
 $po = $poResult->fetch_assoc();
 
 if (!$po) {
-    die("PO not found.");
+  die("PO not found.");
 }
 
 $itemStmt = $conn->prepare("SELECT pi.*, u.name AS updated_by_name
@@ -24,7 +24,11 @@ $itemResult = $itemStmt->get_result();
 ?>
 
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   .po-view-page {
     min-height: 100vh;
@@ -82,7 +86,7 @@ $itemResult = $itemStmt->get_result();
     border: 1px solid #e8eaed;
     border-radius: 16px;
     padding: 24px 28px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     margin-bottom: 20px;
   }
 
@@ -136,10 +140,25 @@ $itemResult = $itemStmt->get_result();
     text-transform: capitalize;
   }
 
-  .status-pending { background: #fff8e1; color: #f59f00; }
-  .status-in_progress { background: #e3f2fd; color: #1565c0; }
-  .status-done { background: #e8f5e9; color: #2e7d32; }
-  .status-sent_to_schedule_delivery { background: #ede7f6; color: #6a1b9a; }
+  .status-pending {
+    background: #fff8e1;
+    color: #f59f00;
+  }
+
+  .status-in_progress {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .status-done {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .status-sent_to_schedule_delivery {
+    background: #ede7f6;
+    color: #6a1b9a;
+  }
 
   .pdf-links {
     display: flex;
@@ -160,7 +179,9 @@ $itemResult = $itemStmt->get_result();
     transition: background 0.15s;
   }
 
-  .pdf-btn:hover { background: #e4e7ec; }
+  .pdf-btn:hover {
+    background: #e4e7ec;
+  }
 
   .pdf-btn svg {
     width: 13px;
@@ -175,7 +196,7 @@ $itemResult = $itemStmt->get_result();
     border: 1px solid #e8eaed;
     border-radius: 16px;
     padding: 24px 28px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     margin-bottom: 20px;
   }
 
@@ -247,7 +268,7 @@ $itemResult = $itemStmt->get_result();
     border: 1px solid #e8eaed;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     margin-bottom: 20px;
   }
 
@@ -364,7 +385,7 @@ $itemResult = $itemStmt->get_result();
     <div class="page-header-left">
       <div class="page-header-icon">
         <svg viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       </div>
       <div>
@@ -421,14 +442,14 @@ $itemResult = $itemStmt->get_result();
             <div class="pdf-links">
               <a href="<?php echo $po['pdf_file_path']; ?>" target="_blank" class="pdf-btn">
                 <svg viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
                 View
               </a>
               <a href="<?php echo $po['pdf_file_path']; ?>" download class="pdf-btn">
                 <svg viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Download
               </a>
@@ -440,31 +461,31 @@ $itemResult = $itemStmt->get_result();
       </div>
 
       <?php if (!empty($po['expected_delivery_date'])): ?>
-      <div class="info-item">
-        <div class="info-label">Expected Delivery Date</div>
-        <div class="info-value">
-          <span class="expected-date-display">
-            <svg viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <?php echo date('d-m-Y', strtotime($po['expected_delivery_date'])); ?>
-          </span>
+        <div class="info-item">
+          <div class="info-label">Expected Delivery Date</div>
+          <div class="info-value">
+            <span class="expected-date-display">
+              <svg viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <?php echo date('d-m-Y', strtotime($po['expected_delivery_date'])); ?>
+            </span>
+          </div>
         </div>
-      </div>
       <?php endif; ?>
 
       <?php if (!empty($po['delivery_schedule_date'])): ?>
-      <div class="info-item">
-        <div class="info-label">Delivery Schedule Date</div>
-        <div class="info-value">
-          <span class="expected-date-display">
-            <svg viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <?php echo date('d-m-Y', strtotime($po['delivery_schedule_date'])); ?>
-          </span>
+        <div class="info-item">
+          <div class="info-label">Delivery Schedule Date</div>
+          <div class="info-value">
+            <span class="expected-date-display">
+              <svg viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <?php echo date('d-m-Y', strtotime($po['delivery_schedule_date'])); ?>
+            </span>
+          </div>
         </div>
-      </div>
       <?php endif; ?>
 
     </div>
@@ -483,7 +504,7 @@ $itemResult = $itemStmt->get_result();
 
         <button type="submit" class="btn-primary">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           Save Schedule Date
         </button>
@@ -491,7 +512,12 @@ $itemResult = $itemStmt->get_result();
     </div>
   <?php endif; ?>
 
-  <?php if ($_SESSION['role'] == 'user' && $po['po_status'] != 'sent_to_schedule_delivery' && $po['po_status'] != 'done'): ?>
+  <?php if (
+    $_SESSION['role'] == 'user' &&
+    $po['po_status'] != 'sent_to_schedule_delivery' &&
+    $po['po_status'] != 'done' &&
+    empty($po['delivery_schedule_date'])
+  ): ?>
     <div class="form-card">
       <div class="form-card-title"><span class="section-dot"></span> Expected Delivery Date</div>
       <form method="POST" action="save_item_action.php">
@@ -529,7 +555,7 @@ $itemResult = $itemStmt->get_result();
 
         <button type="submit" class="btn-primary">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           Save
         </button>
