@@ -27,397 +27,782 @@ ksort($factoryList);
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-.dash-page {
-    min-height: 100vh;
-    background: #f0f2f5;
-    padding: 32px 24px 60px;
-    font-family: 'DM Sans', sans-serif;
-}
+    .dash-page {
+        min-height: 100vh;
+        background: #f0f2f5;
+        padding: 32px 24px 60px;
+        font-family: 'DM Sans', sans-serif;
+    }
 
-.dash-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    gap: 12px;
-    flex-wrap: wrap;
-}
+    .dash-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 
-.dash-header-left { display: flex; align-items: center; gap: 14px; }
+    .dash-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
 
-.dash-header-icon {
-    width: 44px; height: 44px;
-    background: #1a1a2e;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-}
+    .dash-header-icon {
+        width: 44px;
+        height: 44px;
+        background: #1a1a2e;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
 
-.dash-header-icon svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 1.8; }
+    .dash-header-icon svg {
+        width: 22px;
+        height: 22px;
+        stroke: #fff;
+        fill: none;
+        stroke-width: 1.8;
+    }
 
-.dash-header h2 { font-size: 22px; font-weight: 600; color: #1a1a2e; letter-spacing: -0.3px; }
-.dash-header p  { font-size: 13px; color: #888; margin-top: 2px; }
+    .dash-header h2 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a2e;
+        letter-spacing: -0.3px;
+    }
 
-.btn-new {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 10px 20px;
-    background: #1a1a2e; color: #fff;
-    border: none; border-radius: 10px;
-    font-size: 13px; font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    text-decoration: none;
-    transition: background 0.15s;
-}
-.btn-new:hover { background: #2d2d4e; }
-.btn-new svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2.5; }
+    .dash-header p {
+        font-size: 13px;
+        color: #888;
+        margin-top: 2px;
+    }
 
-/* Stats */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-}
+    .btn-new {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 20px;
+        background: #1a1a2e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        text-decoration: none;
+        transition: background 0.15s;
+    }
 
-.stat-card {
-    background: #fff;
-    border: 1px solid #e8eaed;
-    border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
+    .btn-new:hover {
+        background: #2d2d4e;
+    }
 
-.stat-card .stat-label {
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.6px;
-    color: #999; margin-bottom: 6px;
-}
+    .btn-new svg {
+        width: 15px;
+        height: 15px;
+        stroke: #fff;
+        fill: none;
+        stroke-width: 2.5;
+    }
 
-.stat-card .stat-value {
-    font-size: 26px; font-weight: 700;
-    color: #1a1a2e;
-    font-family: 'DM Mono', monospace;
-    line-height: 1;
-    display: inline-block;
-}
+    /* Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
 
-.stat-card .stat-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+    .stat-card {
+        background: #fff;
+        border: 1px solid #e8eaed;
+        border-radius: 14px;
+        padding: 18px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
 
-/* Table card */
-.table-card {
-    background: #fff;
-    border: 1px solid #e8eaed;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-}
+    .stat-card .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #999;
+        margin-bottom: 6px;
+    }
 
-.table-card-header {
-    padding: 14px 20px;
-    background: #fafafa;
-    border-bottom: 1px solid #e8eaed;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
+    .stat-card .stat-value {
+        font-size: 26px;
+        font-weight: 700;
+        color: #1a1a2e;
+        font-family: 'DM Mono', monospace;
+        line-height: 1;
+        display: inline-block;
+    }
 
-.table-card-header-left { display: flex; align-items: center; gap: 10px; }
-.table-card-header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+    .stat-card .stat-sub {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 4px;
+    }
 
-.section-dot { width: 8px; height: 8px; border-radius: 50%; background: #1a1a2e; flex-shrink: 0; }
+    /* Table card */
+    .table-card {
+        background: #fff;
+        border: 1px solid #e8eaed;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
 
-.table-card-header .hdr-title {
-    font-size: 13px; font-weight: 600; color: #1a1a2e;
-    text-transform: uppercase; letter-spacing: 0.6px;
-}
+    .table-card-header {
+        padding: 14px 20px;
+        background: #fafafa;
+        border-bottom: 1px solid #e8eaed;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 
-/* Refresh pill */
-#refresh-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 5px 13px;
-    background: #f0f2f5;
-    border: 1.5px solid #e0e3e8;
-    border-radius: 20px;
-    font-size: 12px; font-weight: 600; color: #555;
-    font-family: 'DM Sans', sans-serif;
-    white-space: nowrap;
-    transition: background 0.25s, color 0.25s, border-color 0.25s;
-    user-select: none;
-}
+    .table-card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-#refresh-pill.is-refreshing {
-    background: #e3f2fd; color: #1565c0; border-color: #90caf9;
-}
+    .table-card-header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
 
-#refresh-pill.did-flash {
-    animation: pillFlash 0.9s ease forwards;
-}
+    .section-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #1a1a2e;
+        flex-shrink: 0;
+    }
 
-#refresh-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #43a047; flex-shrink: 0;
-    animation: dotPulse 1.6s ease-in-out infinite;
-}
+    .table-card-header .hdr-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a2e;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
 
-#refresh-pill.is-refreshing #refresh-dot {
-    background: #1e88e5;
-    animation: dotPulse 0.5s ease-in-out infinite;
-}
+    /* Refresh pill */
+    #refresh-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 13px;
+        background: #f0f2f5;
+        border: 1.5px solid #e0e3e8;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        font-family: 'DM Sans', sans-serif;
+        white-space: nowrap;
+        transition: background 0.25s, color 0.25s, border-color 0.25s;
+        user-select: none;
+    }
 
-/* Notification banner */
-#notif-banner {
-    display: none;
-    align-items: center; gap: 12px;
-    background: #fff8e1; border: 1.5px solid #ffe082;
-    border-radius: 12px; padding: 12px 18px;
-    margin-bottom: 20px;
-    font-size: 13px; color: #5d4037; font-weight: 500;
-}
+    #refresh-pill.is-refreshing {
+        background: #e3f2fd;
+        color: #1565c0;
+        border-color: #90caf9;
+    }
 
-#notif-banner svg { width: 18px; height: 18px; stroke: #f57f17; fill: none; stroke-width: 2; flex-shrink: 0; }
-#notif-banner .nb-actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+    #refresh-pill.did-flash {
+        animation: pillFlash 0.9s ease forwards;
+    }
 
-.nb-btn {
-    padding: 6px 14px; border-radius: 8px;
-    font-size: 12px; font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer; border: none;
-}
+    #refresh-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #43a047;
+        flex-shrink: 0;
+        animation: dotPulse 1.6s ease-in-out infinite;
+    }
 
-.nb-btn-allow { background: #1a1a2e; color: #fff; }
-.nb-btn-allow:hover { background: #2d2d4e; }
-.nb-btn-dismiss { background: #ede9e0; color: #888; }
-.nb-btn-dismiss:hover { background: #e0dbd0; }
+    #refresh-pill.is-refreshing #refresh-dot {
+        background: #1e88e5;
+        animation: dotPulse 0.5s ease-in-out infinite;
+    }
 
-/* Filters */
-.filters-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+    /* Notification banner */
+    #notif-banner {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        background: #fff8e1;
+        border: 1.5px solid #ffe082;
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: #5d4037;
+        font-weight: 500;
+    }
 
-.search-box,
-.filter-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f0f2f5;
-    border: 1.5px solid #e0e3e8;
-    border-radius: 8px;
-    padding: 6px 12px;
-    min-height: 40px;
-}
+    #notif-banner svg {
+        width: 18px;
+        height: 18px;
+        stroke: #f57f17;
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+    }
 
-.search-box svg,
-.filter-box svg {
-    width: 14px;
-    height: 14px;
-    stroke: #aaa;
-    fill: none;
-    stroke-width: 2;
-    flex-shrink: 0;
-}
+    #notif-banner .nb-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
 
-.search-box input,
-.filter-box input,
-.filter-box select {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    color: #1a1a2e;
-}
+    .nb-btn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        border: none;
+    }
 
-.search-box input { width: 180px; }
-.search-box input::placeholder { color: #bbb; }
+    .nb-btn-allow {
+        background: #1a1a2e;
+        color: #fff;
+    }
 
-.filter-box select { min-width: 150px; cursor: pointer; }
-.filter-box input[type="date"] { min-width: 145px; }
+    .nb-btn-allow:hover {
+        background: #2d2d4e;
+    }
 
-.clear-filters-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: none;
-    background: #1a1a2e;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-}
-.clear-filters-btn:hover { background: #2d2d4e; }
+    .nb-btn-dismiss {
+        background: #ede9e0;
+        color: #888;
+    }
 
-/* Table */
-.po-table { width: 100%; border-collapse: collapse; }
+    .nb-btn-dismiss:hover {
+        background: #e0dbd0;
+    }
 
-.po-table th {
-    padding: 11px 16px;
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    color: #888; background: #fafafa;
-    border-bottom: 1px solid #e8eaed;
-    text-align: left; white-space: nowrap;
-}
-
-.po-table td {
-    padding: 13px 16px; font-size: 13px; color: #333;
-    border-bottom: 1px solid #f0f2f5; vertical-align: middle;
-}
-
-.po-table tr:last-child td { border-bottom: none; }
-.po-table tbody tr { transition: background 0.12s; }
-.po-table tbody tr:hover { background: #fafbfc; }
-
-.po-num {
-    font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
-    color: #1a1a2e; background: #f0f2f5;
-    padding: 3px 8px; border-radius: 6px; display: inline-block;
-}
-
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
-.badge-instamart { background: #fff3e0; color: #e65100; }
-.badge-blinkit   { background: #f9fbe7; color: #827717; }
-.badge-zepto     { background: #fce4ec; color: #880e4f; }
-.badge-flipkart  { background: #e3f2fd; color: #0d47a1; }
-.badge-default   { background: #f0f2f5; color: #555; }
-
-.status-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600;
-    transition: background 0.3s, color 0.3s;
-}
-.status-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
-
-.status-pending                    { background: #fff8e1; color: #f57f17; }
-.status-pending .dot               { background: #ffb300; }
-.status-in_progress                { background: #e3f2fd; color: #1565c0; }
-.status-in_progress .dot           { background: #1e88e5; }
-.status-sent_to_schedule_delivery  { background: #fff3e0; color: #ef6c00; }
-.status-sent_to_schedule_delivery .dot { background: #fb8c00; }
-.status-delivery_date_scheduled    { background: #ede7f6; color: #6a1b9a; }
-.status-delivery_date_scheduled .dot { background: #8e24aa; }
-.status-done                       { background: #e8f5e9; color: #2e7d32; }
-.status-done .dot                  { background: #43a047; }
-.status-other                      { background: #f0f2f5; color: #666; }
-.status-other .dot                 { background: #bbb; }
-
-.schedule-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #e8f5e9; color: #2e7d32;
-    padding: 4px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 700;
-    font-family: 'DM Mono', monospace;
-}
-.schedule-pill svg { width: 11px; height: 11px; stroke: #2e7d32; fill: none; stroke-width: 2.5; }
-
-.needs-schedule {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #fff3e0; color: #e65100;
-    padding: 4px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600;
-}
-.needs-schedule svg { width: 11px; height: 11px; stroke: #e65100; fill: none; stroke-width: 2.5; }
-
-.action-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-.action-link, .action-btn {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 5px 10px; border-radius: 7px;
-    font-size: 12px; font-weight: 600;
-    text-decoration: none; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.15s;
-}
-.action-link svg, .action-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-.action-view  { color: #1a1a2e; background: #f0f2f5; }
-.action-view:hover  { background: #e4e7ec; }
-.action-pdf   { color: #c62828; background: #ffebee; }
-.action-pdf:hover   { background: #ffcdd2; }
-.action-done  { color: #fff; background: #2e7d32; }
-.action-done:hover  { background: #1b5e20; }
-
-.no-pdf { font-size: 12px; color: #bbb; }
-
-.empty-state { text-align: center; padding: 60px 24px; color: #aaa; font-size: 14px; }
-.empty-state svg { width: 40px; height: 40px; stroke: #ddd; fill: none; stroke-width: 1.5; margin-bottom: 12px; }
-
-@keyframes dotPulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50%      { opacity:.35; transform:scale(.65); }
-}
-
-@keyframes pillFlash {
-    0%   { background:#e8f5e9; color:#2e7d32; border-color:#a5d6a7; }
-    100% { background:#f0f2f5; color:#555;    border-color:#e0e3e8; }
-}
-
-@keyframes rowHighlight {
-    0%   { background: #fffde7; }
-    80%  { background: #fffde7; }
-    100% { background: transparent; }
-}
-
-@keyframes rowNew {
-    0%   { background: #e8f5e9; opacity:0; transform:translateY(-6px); }
-    20%  { opacity:1; transform:translateY(0); background:#e8f5e9; }
-    80%  { background: #e8f5e9; }
-    100% { background: transparent; }
-}
-
-@keyframes statBump {
-    0%   { transform: scale(1.3); }
-    100% { transform: scale(1); }
-}
-
-.row-changed { animation: rowHighlight 2.5s ease forwards; }
-.row-new     { animation: rowNew 2.5s ease forwards; }
-.stat-bump   { animation: statBump 0.35s ease both; }
-
-@media (max-width: 768px) {
-    .table-card-header-right,
+    /* Filters */
     .filters-wrap {
-        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
     .search-box,
     .filter-box {
-        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0f2f5;
+        border: 1.5px solid #e0e3e8;
+        border-radius: 8px;
+        padding: 6px 12px;
+        min-height: 40px;
+    }
+
+    .search-box svg,
+    .filter-box svg {
+        width: 14px;
+        height: 14px;
+        stroke: #aaa;
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
     }
 
     .search-box input,
-    .filter-box select,
+    .filter-box input,
+    .filter-box select {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        color: #1a1a2e;
+    }
+
+    .search-box input {
+        width: 180px;
+    }
+
+    .search-box input::placeholder {
+        color: #bbb;
+    }
+
+    .filter-box select {
+        min-width: 150px;
+        cursor: pointer;
+    }
+
     .filter-box input[type="date"] {
-        width: 100%;
-        min-width: 0;
+        min-width: 145px;
     }
 
     .clear-filters-btn {
-        width: 100%;
-        justify-content: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        background: #1a1a2e;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
     }
-}
+
+    .clear-filters-btn:hover {
+        background: #2d2d4e;
+    }
+
+    /* Table */
+    .po-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .po-table th {
+        padding: 11px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        background: #fafafa;
+        border-bottom: 1px solid #e8eaed;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .po-table td {
+        padding: 13px 16px;
+        font-size: 13px;
+        color: #333;
+        border-bottom: 1px solid #f0f2f5;
+        vertical-align: middle;
+    }
+
+    .po-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .po-table tbody tr {
+        transition: background 0.12s;
+    }
+
+    .po-table tbody tr:hover {
+        background: #fafbfc;
+    }
+
+    .po-num {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        font-weight: 500;
+        color: #1a1a2e;
+        background: #f0f2f5;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-instamart {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .badge-blinkit {
+        background: #f9fbe7;
+        color: #827717;
+    }
+
+    .badge-zepto {
+        background: #fce4ec;
+        color: #880e4f;
+    }
+
+    .badge-flipkart {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+
+    .badge-default {
+        background: #f0f2f5;
+        color: #555;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        transition: background 0.3s, color 0.3s;
+    }
+
+    .status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-pending {
+        background: #fff8e1;
+        color: #f57f17;
+    }
+
+    .status-pending .dot {
+        background: #ffb300;
+    }
+
+    .status-in_progress {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .status-in_progress .dot {
+        background: #1e88e5;
+    }
+
+    .status-sent_to_schedule_delivery {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .status-sent_to_schedule_delivery .dot {
+        background: #fb8c00;
+    }
+
+    .status-delivery_date_scheduled {
+        background: #ede7f6;
+        color: #6a1b9a;
+    }
+
+    .status-delivery_date_scheduled .dot {
+        background: #8e24aa;
+    }
+
+    .status-done {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-done .dot {
+        background: #43a047;
+    }
+
+    .status-other {
+        background: #f0f2f5;
+        color: #666;
+    }
+
+    .status-other .dot {
+        background: #bbb;
+    }
+
+    .schedule-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .schedule-pill svg {
+        width: 11px;
+        height: 11px;
+        stroke: #2e7d32;
+        fill: none;
+        stroke-width: 2.5;
+    }
+
+    .needs-schedule {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff3e0;
+        color: #e65100;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .needs-schedule svg {
+        width: 11px;
+        height: 11px;
+        stroke: #e65100;
+        fill: none;
+        stroke-width: 2.5;
+    }
+
+    .action-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .action-link,
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+        transition: background 0.15s;
+    }
+
+    .action-link svg,
+    .action-btn svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .action-view {
+        color: #1a1a2e;
+        background: #f0f2f5;
+    }
+
+    .action-view:hover {
+        background: #e4e7ec;
+    }
+
+    .action-pdf {
+        color: #c62828;
+        background: #ffebee;
+    }
+
+    .action-pdf:hover {
+        background: #ffcdd2;
+    }
+
+    .action-done {
+        color: #fff;
+        background: #2e7d32;
+    }
+
+    .action-done:hover {
+        background: #1b5e20;
+    }
+
+    .no-pdf {
+        font-size: 12px;
+        color: #bbb;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+        color: #aaa;
+        font-size: 14px;
+    }
+
+    .empty-state svg {
+        width: 40px;
+        height: 40px;
+        stroke: #ddd;
+        fill: none;
+        stroke-width: 1.5;
+        margin-bottom: 12px;
+    }
+
+    @keyframes dotPulse {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: .35;
+            transform: scale(.65);
+        }
+    }
+
+    @keyframes pillFlash {
+        0% {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
+        }
+
+        100% {
+            background: #f0f2f5;
+            color: #555;
+            border-color: #e0e3e8;
+        }
+    }
+
+    @keyframes rowHighlight {
+        0% {
+            background: #fffde7;
+        }
+
+        80% {
+            background: #fffde7;
+        }
+
+        100% {
+            background: transparent;
+        }
+    }
+
+    @keyframes rowNew {
+        0% {
+            background: #e8f5e9;
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        20% {
+            opacity: 1;
+            transform: translateY(0);
+            background: #e8f5e9;
+        }
+
+        80% {
+            background: #e8f5e9;
+        }
+
+        100% {
+            background: transparent;
+        }
+    }
+
+    @keyframes statBump {
+        0% {
+            transform: scale(1.3);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .row-changed {
+        animation: rowHighlight 2.5s ease forwards;
+    }
+
+    .row-new {
+        animation: rowNew 2.5s ease forwards;
+    }
+
+    .stat-bump {
+        animation: statBump 0.35s ease both;
+    }
+
+    @media (max-width: 768px) {
+
+        .table-card-header-right,
+        .filters-wrap {
+            width: 100%;
+        }
+
+        .search-box,
+        .filter-box {
+            width: 100%;
+        }
+
+        .search-box input,
+        .filter-box select,
+        .filter-box input[type="date"] {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .clear-filters-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .progress-toggle-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 16px;
+    }
+
+    .progress-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border: none;
+        border-radius: 10px;
+        background: #1a1a2e;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .progress-toggle-btn:hover {
+        background: #2d2d4e;
+    }
 </style>
 
 <div class="dash-page">
 
     <div id="notif-banner">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
         <span>Enable browser notifications to get instant alerts when PO status changes.</span>
         <div class="nb-actions">
             <button class="nb-btn nb-btn-allow" id="nb-allow">Enable Notifications</button>
@@ -429,8 +814,10 @@ ksort($factoryList);
         <div class="dash-header-left">
             <div class="dash-header-icon">
                 <svg viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
                 </svg>
             </div>
             <div>
@@ -439,7 +826,10 @@ ksort($factoryList);
             </div>
         </div>
         <a href="create_po.php" class="btn-new">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
             New PO
         </a>
     </div>
@@ -472,6 +862,16 @@ ksort($factoryList);
         </div>
     </div>
 
+    <div class="progress-toggle-wrap">
+        <button type="button" class="progress-toggle-btn" id="toggle-progress-bars">
+            Hide Progress Bars
+        </button>
+    </div>
+
+    <div id="progress-bars-section">
+        <?php include 'po_done_rate_bar.php'; ?>
+        <?php include 'po_date_alert_bars.php'; ?>
+    </div>
     <div class="table-card">
         <div class="table-card-header">
             <div class="table-card-header-left">
@@ -487,12 +887,19 @@ ksort($factoryList);
 
                 <div class="filters-wrap">
                     <div class="search-box">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
                         <input type="text" id="search-input" placeholder="Search POs…">
                     </div>
 
                     <div class="filter-box">
-                        <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 6h16" />
+                            <path d="M7 12h10" />
+                            <path d="M10 18h4" />
+                        </svg>
                         <select id="status-filter">
                             <option value="">All Status</option>
                             <option value="pending">Pending</option>
@@ -504,7 +911,14 @@ ksort($factoryList);
                     </div>
 
                     <div class="filter-box">
-                        <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M9 13h.01"/><path d="M15 13h.01"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 21h18" />
+                            <path d="M5 21V7l7-4 7 4v14" />
+                            <path d="M9 9h.01" />
+                            <path d="M15 9h.01" />
+                            <path d="M9 13h.01" />
+                            <path d="M15 13h.01" />
+                        </svg>
                         <select id="factory-filter">
                             <option value="">All Factory</option>
                             <?php foreach ($factoryList as $factory): ?>
@@ -514,7 +928,12 @@ ksort($factoryList);
                     </div>
 
                     <div class="filter-box">
-                        <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8 2v4" />
+                            <path d="M16 2v4" />
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M3 10h18" />
+                        </svg>
                         <input type="date" id="date-filter" title="Filter by release date">
                     </div>
 
@@ -541,110 +960,132 @@ ksort($factoryList);
                     </tr>
                 </thead>
                 <tbody id="po-tbody">
-                <?php if (empty($rows)): ?>
-                    <tr id="empty-row">
-                        <td colspan="11">
-                            <div class="empty-state">
-                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                <div>No purchase orders yet</div>
-                            </div>
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($rows as $row):
-                        $plt    = strtolower($row['platform'] ?? '');
-                        $pClass = match($plt) {
-                            'instamart' => 'badge-instamart',
-                            'blinkit'   => 'badge-blinkit',
-                            'zepto'     => 'badge-zepto',
-                            'flipkart'  => 'badge-flipkart',
-                            default     => 'badge-default',
-                        };
-                        $st     = strtolower($row['po_status'] ?? '');
-                        $sClass = match($st) {
-                            'pending'                    => 'status-pending',
-                            'in_progress'               => 'status-in_progress',
-                            'sent_to_schedule_delivery' => 'status-sent_to_schedule_delivery',
-                            'delivery_date_scheduled'   => 'status-delivery_date_scheduled',
-                            'done'                      => 'status-done',
-                            default                     => 'status-other',
-                        };
-                        $showExp  = in_array($st, ['sent_to_schedule_delivery','delivery_date_scheduled','done']);
-                        $showSch  = in_array($st, ['delivery_date_scheduled','done']);
-                        $canDone  = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && $st === 'delivery_date_scheduled');
-                    ?>
-                    <tr data-po-id="<?= (int)$row['id'] ?>" data-po-status="<?= htmlspecialchars($row['po_status'] ?? '') ?>">
-                        <td style="color:#bbb;font-size:12px;font-family:'DM Mono',monospace"><?= $row['id'] ?></td>
-                        <td><span class="po-num"><?= htmlspecialchars($row['po_number']) ?></span></td>
-                        <td><span class="badge <?= $pClass ?>"><?= htmlspecialchars($row['platform'] ?? '—') ?></span></td>
-                        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= htmlspecialchars($row['factory_name'] ?? '') ?>">
-                            <?= htmlspecialchars($row['factory_name'] ?? '—') ?>
-                        </td>
-                        <td style="font-size:12px;color:#666"><?= !empty($row['release_date']) ? date('d-m-Y', strtotime($row['release_date'])) : '—' ?></td>
-                        <td style="font-size:12px;color:#666"><?= !empty($row['expiry_date']) ? date('d-m-Y', strtotime($row['expiry_date'])) : '—' ?></td>
+                    <?php if (empty($rows)): ?>
+                        <tr id="empty-row">
+                            <td colspan="11">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                    </svg>
+                                    <div>No purchase orders yet</div>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($rows as $row):
+                            $plt    = strtolower($row['platform'] ?? '');
+                            $pClass = match ($plt) {
+                                'instamart' => 'badge-instamart',
+                                'blinkit'   => 'badge-blinkit',
+                                'zepto'     => 'badge-zepto',
+                                'flipkart'  => 'badge-flipkart',
+                                default     => 'badge-default',
+                            };
+                            $st     = strtolower($row['po_status'] ?? '');
+                            $sClass = match ($st) {
+                                'pending'                    => 'status-pending',
+                                'in_progress'               => 'status-in_progress',
+                                'sent_to_schedule_delivery' => 'status-sent_to_schedule_delivery',
+                                'delivery_date_scheduled'   => 'status-delivery_date_scheduled',
+                                'done'                      => 'status-done',
+                                default                     => 'status-other',
+                            };
+                            $showExp  = in_array($st, ['sent_to_schedule_delivery', 'delivery_date_scheduled', 'done']);
+                            $showSch  = in_array($st, ['delivery_date_scheduled', 'done']);
+                            $canDone  = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && $st === 'delivery_date_scheduled');
+                        ?>
+                            <tr data-po-id="<?= (int)$row['id'] ?>" data-po-status="<?= htmlspecialchars($row['po_status'] ?? '') ?>">
+                                <td style="color:#bbb;font-size:12px;font-family:'DM Mono',monospace"><?= $row['id'] ?></td>
+                                <td><span class="po-num"><?= htmlspecialchars($row['po_number']) ?></span></td>
+                                <td><span class="badge <?= $pClass ?>"><?= htmlspecialchars($row['platform'] ?? '—') ?></span></td>
+                                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= htmlspecialchars($row['factory_name'] ?? '') ?>">
+                                    <?= htmlspecialchars($row['factory_name'] ?? '—') ?>
+                                </td>
+                                <td style="font-size:12px;color:#666"><?= !empty($row['release_date']) ? date('d-m-Y', strtotime($row['release_date'])) : '—' ?></td>
+                                <td style="font-size:12px;color:#666"><?= !empty($row['expiry_date']) ? date('d-m-Y', strtotime($row['expiry_date'])) : '—' ?></td>
 
-                        <td>
-                            <span class="status-badge <?= $sClass ?>">
-                                <span class="dot"></span>
-                                <?= ucfirst(str_replace('_', ' ', $row['po_status'] ?? 'N/A')) ?>
-                            </span>
-                        </td>
-
-                        <td>
-                            <?php if ($showExp && !empty($row['expected_delivery_date'])): ?>
-                                <span class="schedule-pill">
-                                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    <?= date('d-m-Y', strtotime($row['expected_delivery_date'])) ?>
-                                </span>
-                            <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
-                        </td>
-
-                        <td>
-                            <?php if ($showSch): ?>
-                                <?php if (!empty($row['delivery_schedule_date'])): ?>
-                                    <span class="schedule-pill">
-                                        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        <?= date('d-m-Y', strtotime($row['delivery_schedule_date'])) ?>
+                                <td>
+                                    <span class="status-badge <?= $sClass ?>">
+                                        <span class="dot"></span>
+                                        <?= ucfirst(str_replace('_', ' ', $row['po_status'] ?? 'N/A')) ?>
                                     </span>
-                                <?php else: ?>
-                                    <span class="needs-schedule">
-                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                        Not scheduled
-                                    </span>
-                                <?php endif; ?>
-                            <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
-                        </td>
+                                </td>
 
-                        <td style="font-size:12px;color:#666"><?= htmlspecialchars($row['creator_name'] ?? '—') ?></td>
+                                <td>
+                                    <?php if ($showExp && !empty($row['expected_delivery_date'])): ?>
+                                        <span class="schedule-pill">
+                                            <svg viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <?= date('d-m-Y', strtotime($row['expected_delivery_date'])) ?>
+                                        </span>
+                                    <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
+                                </td>
 
-                        <td>
-                            <div class="action-group">
-                                <a href="po_view.php?id=<?= $row['id'] ?>" class="action-link action-view">
-                                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View
-                                </a>
-                                <?php if (!empty($row['pdf_file_path'])): ?>
-                                    <a href="<?= htmlspecialchars($row['pdf_file_path']) ?>" target="_blank" class="action-link action-pdf">
-                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
-                                    </a>
-                                <?php else: ?>
-                                    <span class="no-pdf">No PDF</span>
-                                <?php endif; ?>
-                                <?php if ($canDone): ?>
-                                    <form method="POST" action="mark_po_done.php" onsubmit="return confirm('Mark this PO as done?');" style="display:inline;">
-                                        <input type="hidden" name="po_id" value="<?= (int)$row['id'] ?>">
-                                        <button type="submit" class="action-btn action-done">
-                                            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-                                <a href="po_workflow_history.php?po_id=<?= $row['id'] ?>" class="action-link action-view">
-                                    <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                                <td>
+                                    <?php if ($showSch): ?>
+                                        <?php if (!empty($row['delivery_schedule_date'])): ?>
+                                            <span class="schedule-pill">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <?= date('d-m-Y', strtotime($row['delivery_schedule_date'])) ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="needs-schedule">
+                                                <svg viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                                </svg>
+                                                Not scheduled
+                                            </span>
+                                        <?php endif; ?>
+                                    <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
+                                </td>
+
+                                <td style="font-size:12px;color:#666"><?= htmlspecialchars($row['creator_name'] ?? '—') ?></td>
+
+                                <td>
+                                    <div class="action-group">
+                                        <a href="po_view.php?id=<?= $row['id'] ?>" class="action-link action-view">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>View
+                                        </a>
+                                        <?php if (!empty($row['pdf_file_path'])): ?>
+                                            <a href="<?= htmlspecialchars($row['pdf_file_path']) ?>" target="_blank" class="action-link action-pdf">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                    <polyline points="14 2 14 8 20 8" />
+                                                </svg>PDF
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="no-pdf">No PDF</span>
+                                        <?php endif; ?>
+                                        <?php if ($canDone): ?>
+                                            <form method="POST" action="mark_po_done.php" onsubmit="return confirm('Mark this PO as done?');" style="display:inline;">
+                                                <input type="hidden" name="po_id" value="<?= (int)$row['id'] ?>">
+                                                <button type="submit" class="action-btn action-done">
+                                                    <svg viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>Mark Done
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <a href="po_workflow_history.php?po_id=<?= $row['id'] ?>" class="action-link action-view">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M12 8v4l3 3" />
+                                                <circle cx="12" cy="12" r="9" />
+                                            </svg>History
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -652,495 +1093,626 @@ ksort($factoryList);
 </div>
 
 <script>
-(function () {
-'use strict';
+    var progressSection = document.getElementById('progress-bars-section');
+    var toggleProgressBtn = document.getElementById('toggle-progress-bars');
+    (function() {
+        'use strict';
 
-var allRows = <?= json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-var knownRows = {};
+        var allRows = <?= json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+        var knownRows = {};
 
-var searchInput   = document.getElementById('search-input');
-var statusFilter  = document.getElementById('status-filter');
-var factoryFilter = document.getElementById('factory-filter');
-var dateFilter    = document.getElementById('date-filter');
-var clearBtn      = document.getElementById('clear-filters-btn');
+        var searchInput = document.getElementById('search-input');
+        var statusFilter = document.getElementById('status-filter');
+        var factoryFilter = document.getElementById('factory-filter');
+        var dateFilter = document.getElementById('date-filter');
+        var clearBtn = document.getElementById('clear-filters-btn');
 
-var pill    = document.getElementById('refresh-pill');
-var pillLbl = document.getElementById('refresh-label');
-var secs    = 10;
-var polling = false;
+        var pill = document.getElementById('refresh-pill');
+        var pillLbl = document.getElementById('refresh-label');
+        var secs = 10;
+        var polling = false;
 
-function canNotify() {
-    return ('Notification' in window) && Notification.permission === 'granted';
-}
+        function canNotify() {
+            return ('Notification' in window) && Notification.permission === 'granted';
+        }
 
-function pushNotif(title, body) {
-    if (!canNotify()) return;
-    try {
-        new Notification(title, {
-            body  : body,
-            icon  : '/favicon.ico',
-            badge : '/favicon.ico',
-        });
-    } catch (_) {}
-}
+        function pushNotif(title, body) {
+            if (!canNotify()) return;
+            try {
+                new Notification(title, {
+                    body: body,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                });
+            } catch (_) {}
+        }
 
-var banner   = document.getElementById('notif-banner');
-var nbAllow  = document.getElementById('nb-allow');
-var nbDismis = document.getElementById('nb-dismiss');
+        var banner = document.getElementById('notif-banner');
+        var nbAllow = document.getElementById('nb-allow');
+        var nbDismis = document.getElementById('nb-dismiss');
 
-function checkBanner() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default' && !sessionStorage.getItem('nb-gone')) {
-        banner.style.display = 'flex';
-    }
-}
-
-if (nbAllow) {
-    nbAllow.addEventListener('click', function () {
-        Notification.requestPermission().then(function (p) {
-            banner.style.display = 'none';
-            if (p === 'granted') {
-                pushNotif('✅ Notifications enabled', 'You\'ll get alerts for PO status changes.');
+        function checkBanner() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'default' && !sessionStorage.getItem('nb-gone')) {
+                banner.style.display = 'flex';
             }
-        });
-    });
-}
-
-if (nbDismis) {
-    nbDismis.addEventListener('click', function () {
-        banner.style.display = 'none';
-        sessionStorage.setItem('nb-gone', '1');
-    });
-}
-
-checkBanner();
-
-var justCreated = sessionStorage.getItem('po_created');
-if (justCreated) {
-    sessionStorage.removeItem('po_created');
-    setTimeout(function () {
-        pushNotif('✅ Purchase Order Created', 'PO ' + justCreated + ' saved successfully.');
-    }, 600);
-}
-
-function snapshotRows(rows) {
-    var out = {};
-    rows.forEach(function (row) {
-        var id = String(row.id);
-        out[id] = {
-            id: id,
-            po_status: row.po_status || ''
-        };
-    });
-    return out;
-}
-knownRows = snapshotRows(allRows);
-
-function tick() {
-    if (polling) return;
-    secs--;
-    if (secs <= 0) {
-        secs = 10;
-        polling = true;
-        setPillState('loading');
-        doFetch();
-    } else {
-        pillLbl.textContent = 'Refresh in ' + secs + 's';
-    }
-}
-
-function setPillState(state) {
-    pill.classList.remove('is-refreshing', 'did-flash');
-    if (state === 'loading') {
-        pill.classList.add('is-refreshing');
-        pillLbl.textContent = 'Refreshing…';
-    } else if (state === 'done') {
-        void pill.offsetWidth;
-        pill.classList.add('did-flash');
-        pillLbl.textContent = 'Refresh in 10s';
-    } else {
-        pillLbl.textContent = 'Refresh in ' + secs + 's';
-    }
-}
-
-setInterval(tick, 1000);
-
-function doFetch() {
-    fetch('get_po_status.php?_=' + Date.now(), {
-        credentials: 'same-origin',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.text();
-    })
-    .then(function (text) {
-        var data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('PO poller: bad JSON from get_po_status.php:', text.substring(0, 300));
-            throw e;
         }
 
-        if (data.success) {
-            detectChangesAndNotify(data.rows || []);
-            allRows = data.rows || [];
-            knownRows = snapshotRows(allRows);
-            populateFactoryFilter(allRows);
-            applyFiltersAndRender();
-            setPillState('done');
-        } else {
-            console.warn('PO poller: server error:', data.message);
-            setPillState('idle');
+        if (nbAllow) {
+            nbAllow.addEventListener('click', function() {
+                Notification.requestPermission().then(function(p) {
+                    banner.style.display = 'none';
+                    if (p === 'granted') {
+                        pushNotif('✅ Notifications enabled', 'You\'ll get alerts for PO status changes.');
+                    }
+                });
+            });
         }
-    })
-    .catch(function (err) {
-        console.error('PO poller fetch error:', err);
-        setPillState('idle');
-    })
-    .finally(function () {
-        polling = false;
-        secs = 10;
-    });
-}
 
-function detectChangesAndNotify(rows) {
-    rows.forEach(function (row) {
-        var id = String(row.id);
-        var oldRow = knownRows[id];
-        var newStatus = row.po_status || '';
-
-        if (!oldRow) {
-            pushNotif('🆕 New Purchase Order', 'PO ' + (row.po_number || '') + ' · ' + (row.platform || 'N/A'));
-        } else if ((oldRow.po_status || '') !== newStatus) {
-            pushNotif(
-                '📋 PO Status Changed',
-                'PO ' + (row.po_number || '') + ': ' +
-                formatStatus(oldRow.po_status) + ' → ' + formatStatus(newStatus)
-            );
+        if (nbDismis) {
+            nbDismis.addEventListener('click', function() {
+                banner.style.display = 'none';
+                sessionStorage.setItem('nb-gone', '1');
+            });
         }
-    });
-}
 
-function getActiveFilters() {
-    return {
-        search: (searchInput.value || '').trim().toLowerCase(),
-        status: (statusFilter.value || '').trim().toLowerCase(),
-        factory: (factoryFilter.value || '').trim(),
-        date: (dateFilter.value || '').trim()
-    };
-}
+        checkBanner();
 
-function rowMatchesFilters(row, filters) {
-    var searchText = [
-        row.id,
-        row.po_number,
-        row.platform,
-        row.factory_name,
-        row.po_status,
-        row.creator_name,
-        row.release_date,
-        row.expiry_date,
-        row.expected_delivery_date,
-        row.delivery_schedule_date
-    ].join(' ').toLowerCase();
+        var justCreated = sessionStorage.getItem('po_created');
+        if (justCreated) {
+            sessionStorage.removeItem('po_created');
+            setTimeout(function() {
+                pushNotif('✅ Purchase Order Created', 'PO ' + justCreated + ' saved successfully.');
+            }, 600);
+        }
 
-    if (filters.search && !searchText.includes(filters.search)) {
-        return false;
-    }
+        function snapshotRows(rows) {
+            var out = {};
+            rows.forEach(function(row) {
+                var id = String(row.id);
+                out[id] = {
+                    id: id,
+                    po_status: row.po_status || ''
+                };
+            });
+            return out;
+        }
+        knownRows = snapshotRows(allRows);
 
-    if (filters.status && String(row.po_status || '').toLowerCase() !== filters.status) {
-        return false;
-    }
+        function tick() {
+            if (polling) return;
+            secs--;
+            if (secs <= 0) {
+                secs = 10;
+                polling = true;
+                setPillState('loading');
+                doFetch();
+            } else {
+                pillLbl.textContent = 'Refresh in ' + secs + 's';
+            }
+        }
 
-    if (filters.factory && String(row.factory_name || '') !== filters.factory) {
-        return false;
-    }
+        function setPillState(state) {
+            pill.classList.remove('is-refreshing', 'did-flash');
+            if (state === 'loading') {
+                pill.classList.add('is-refreshing');
+                pillLbl.textContent = 'Refreshing…';
+            } else if (state === 'done') {
+                void pill.offsetWidth;
+                pill.classList.add('did-flash');
+                pillLbl.textContent = 'Refresh in 10s';
+            } else {
+                pillLbl.textContent = 'Refresh in ' + secs + 's';
+            }
+        }
 
-    if (filters.date) {
-        var rowDate = normalizeDate(row.release_date);
-        if (rowDate !== filters.date) return false;
-    }
+        setInterval(tick, 1000);
 
-    return true;
-}
+        function doFetch() {
+            fetch('get_po_status.php?_=' + Date.now(), {
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.text();
+                })
+                .then(function(text) {
+                    var data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error('PO poller: bad JSON from get_po_status.php:', text.substring(0, 300));
+                        throw e;
+                    }
 
-function applyFiltersAndRender() {
-    var filters = getActiveFilters();
-    var filteredRows = allRows.filter(function (row) {
-        return rowMatchesFilters(row, filters);
-    });
+                    if (data.success) {
+                        detectChangesAndNotify(data.rows || []);
+                        allRows = data.rows || [];
+                        knownRows = snapshotRows(allRows);
+                        populateFactoryFilter(allRows);
+                        applyFiltersAndRender();
+                        setPillState('done');
+                    } else {
+                        console.warn('PO poller: server error:', data.message);
+                        setPillState('idle');
+                    }
+                })
+                .catch(function(err) {
+                    console.error('PO poller fetch error:', err);
+                    setPillState('idle');
+                })
+                .finally(function() {
+                    polling = false;
+                    secs = 10;
+                });
+        }
 
-    renderTable(filteredRows);
-    updateCards(filteredRows);
-}
+        function detectChangesAndNotify(rows) {
+            rows.forEach(function(row) {
+                var id = String(row.id);
+                var oldRow = knownRows[id];
+                var newStatus = row.po_status || '';
 
-function renderTable(rows) {
-    var tbody = document.getElementById('po-tbody');
+                if (!oldRow) {
+                    pushNotif('🆕 New Purchase Order', 'PO ' + (row.po_number || '') + ' · ' + (row.platform || 'N/A'));
+                } else if ((oldRow.po_status || '') !== newStatus) {
+                    pushNotif(
+                        '📋 PO Status Changed',
+                        'PO ' + (row.po_number || '') + ': ' +
+                        formatStatus(oldRow.po_status) + ' → ' + formatStatus(newStatus)
+                    );
+                }
+            });
+        }
 
-    if (!rows.length) {
-        tbody.innerHTML =
-            '<tr id="empty-row">' +
-                '<td colspan="11">' +
+        function getActiveFilters() {
+            return {
+                search: (searchInput.value || '').trim().toLowerCase(),
+                status: (statusFilter.value || '').trim().toLowerCase(),
+                factory: (factoryFilter.value || '').trim(),
+                date: (dateFilter.value || '').trim()
+            };
+        }
+
+        function rowMatchesFilters(row, filters) {
+            var searchText = [
+                row.id,
+                row.po_number,
+                row.platform,
+                row.factory_name,
+                row.po_status,
+                row.creator_name,
+                row.release_date,
+                row.expiry_date,
+                row.expected_delivery_date,
+                row.delivery_schedule_date
+            ].join(' ').toLowerCase();
+
+            if (filters.search && !searchText.includes(filters.search)) {
+                return false;
+            }
+
+            if (filters.status && String(row.po_status || '').toLowerCase() !== filters.status) {
+                return false;
+            }
+
+            if (filters.factory && String(row.factory_name || '') !== filters.factory) {
+                return false;
+            }
+
+            if (filters.date) {
+                var rowDate = normalizeDate(row.release_date);
+                if (rowDate !== filters.date) return false;
+            }
+
+            return true;
+        }
+
+        function applyFiltersAndRender() {
+            var filters = getActiveFilters();
+            var filteredRows = allRows.filter(function(row) {
+                return rowMatchesFilters(row, filters);
+            });
+
+            renderTable(filteredRows);
+            updateCards(filteredRows);
+
+            var expiryStats = calculateDateAlertStats(filteredRows, 'expiry_date');
+            var expectedStats = calculateDateAlertStats(filteredRows, 'expected_delivery_date');
+            var scheduleStats = calculateDateAlertStats(filteredRows, 'delivery_schedule_date');
+
+            updateDateAlertBar('expiry', expiryStats, 'expiry date');
+            updateDateAlertBar('expected', expectedStats, 'expected delivery date');
+            updateDateAlertBar('schedule', scheduleStats, 'schedule date');
+        }
+
+        function renderTable(rows) {
+            var tbody = document.getElementById('po-tbody');
+
+            if (!rows.length) {
+                tbody.innerHTML =
+                    '<tr id="empty-row">' +
+                    '<td colspan="11">' +
                     '<div class="empty-state">' +
-                        '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
-                        '<div>No purchase orders found for selected filters</div>' +
+                    '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                    '<div>No purchase orders found for selected filters</div>' +
                     '</div>' +
-                '</td>' +
-            '</tr>';
-        return;
-    }
+                    '</td>' +
+                    '</tr>';
+                return;
+            }
 
-    var html = '';
-    rows.forEach(function (row) {
-        html += buildRowHtml(row, '');
-    });
+            var html = '';
+            rows.forEach(function(row) {
+                html += buildRowHtml(row, '');
+            });
 
-    tbody.innerHTML = html;
-}
-
-function updateCards(rows) {
-    var stats = {
-        total: rows.length,
-        done: 0,
-        scheduled: 0,
-        needs_schedule: 0,
-        open: 0
-    };
-
-    rows.forEach(function (r) {
-        var st = String(r.po_status || '').toLowerCase();
-        if (st === 'done') stats.done++;
-        if (st === 'delivery_date_scheduled') stats.scheduled++;
-        if (st === 'sent_to_schedule_delivery') stats.needs_schedule++;
-    });
-
-    stats.open = stats.total - stats.done;
-
-    processStats(stats);
-}
-
-function processStats(stats) {
-    if (!stats) return;
-
-    var pairs = {
-        'stat-total':     stats.total,
-        'stat-open':      stats.open,
-        'stat-needs':     stats.needs_schedule,
-        'stat-scheduled': stats.scheduled,
-        'stat-done':      stats.done
-    };
-
-    Object.keys(pairs).forEach(function (id) {
-        var el  = document.getElementById(id);
-        var val = String(pairs[id] ?? 0);
-        if (el && el.textContent.trim() !== val) {
-            el.textContent = val;
-            el.classList.remove('stat-bump');
-            void el.offsetWidth;
-            el.classList.add('stat-bump');
-            setTimeout(function () { el.classList.remove('stat-bump'); }, 400);
-        } else if (el) {
-            el.textContent = val;
+            tbody.innerHTML = html;
         }
-    });
-}
 
-function populateFactoryFilter(rows) {
-    var currentValue = factoryFilter.value;
-    var factories = {};
+        function updateCards(rows) {
+            var stats = {
+                total: rows.length,
+                done: 0,
+                scheduled: 0,
+                needs_schedule: 0,
+                open: 0
+            };
 
-    rows.forEach(function (row) {
-        var factory = String(row.factory_name || '').trim();
-        if (factory) factories[factory] = true;
-    });
+            rows.forEach(function(r) {
+                var st = String(r.po_status || '').toLowerCase();
+                if (st === 'done') stats.done++;
+                if (st === 'delivery_date_scheduled') stats.scheduled++;
+                if (st === 'sent_to_schedule_delivery') stats.needs_schedule++;
+            });
 
-    var sorted = Object.keys(factories).sort(function (a, b) {
-        return a.localeCompare(b);
-    });
+            stats.open = stats.total - stats.done;
 
-    var html = '<option value="">All Factory</option>';
-    sorted.forEach(function (factory) {
-        html += '<option value="' + e(factory) + '">' + e(factory) + '</option>';
-    });
+            processStats(stats);
+        }
 
-    factoryFilter.innerHTML = html;
+        function processStats(stats) {
+            if (!stats) return;
 
-    if (currentValue && factories[currentValue]) {
-        factoryFilter.value = currentValue;
-    } else if (currentValue) {
-        factoryFilter.value = '';
-    }
-}
+            var pairs = {
+                'stat-total': stats.total,
+                'stat-open': stats.open,
+                'stat-needs': stats.needs_schedule,
+                'stat-scheduled': stats.scheduled,
+                'stat-done': stats.done
+            };
 
-if (searchInput) {
-    searchInput.addEventListener('input', applyFiltersAndRender);
-}
-if (statusFilter) {
-    statusFilter.addEventListener('change', applyFiltersAndRender);
-}
-if (factoryFilter) {
-    factoryFilter.addEventListener('change', applyFiltersAndRender);
-}
-if (dateFilter) {
-    dateFilter.addEventListener('change', applyFiltersAndRender);
-}
-if (clearBtn) {
-    clearBtn.addEventListener('click', function () {
-        searchInput.value = '';
-        statusFilter.value = '';
-        factoryFilter.value = '';
-        dateFilter.value = '';
-        applyFiltersAndRender();
-    });
-}
+            Object.keys(pairs).forEach(function(id) {
+                var el = document.getElementById(id);
+                var val = String(pairs[id] ?? 0);
+                if (el && el.textContent.trim() !== val) {
+                    el.textContent = val;
+                    el.classList.remove('stat-bump');
+                    void el.offsetWidth;
+                    el.classList.add('stat-bump');
+                    setTimeout(function() {
+                        el.classList.remove('stat-bump');
+                    }, 400);
+                } else if (el) {
+                    el.textContent = val;
+                }
+            });
 
-function buildRowHtml(row, rowClass) {
-    var st = (row.po_status || '').toLowerCase();
-    var showExp = ['sent_to_schedule_delivery', 'delivery_date_scheduled', 'done'].includes(st);
-    var showSch = ['delivery_date_scheduled', 'done'].includes(st);
-    var canDone = row.can_mark_done ? true : ((st === 'delivery_date_scheduled') && <?= json_encode(isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ?>);
+            var doneRate = stats.total > 0 ? ((stats.done / stats.total) * 100) : 0;
+            var roundedRate = Math.round(doneRate * 10) / 10;
 
-    var expectedHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-    if (showExp && row.expected_delivery_date) {
-        expectedHtml =
-            '<span class="schedule-pill">' +
-                '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                e(fmtDate(row.expected_delivery_date)) +
-            '</span>';
-    }
+            var rateFill = document.getElementById('po-done-rate-fill');
+            var rateText = document.getElementById('po-done-rate-text');
+            var rateMeta = document.getElementById('po-done-rate-meta');
 
-    var scheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-    if (showSch) {
-        if (row.delivery_schedule_date) {
-            scheduleHtml =
-                '<span class="schedule-pill">' +
+            if (rateFill) {
+                rateFill.style.width = roundedRate + '%';
+            }
+
+            if (rateText) {
+                rateText.textContent = roundedRate + '%';
+            }
+
+            if (rateMeta) {
+                rateMeta.textContent = stats.done + ' of ' + stats.total + ' purchase orders completed';
+            }
+        }
+
+        function populateFactoryFilter(rows) {
+            var currentValue = factoryFilter.value;
+            var factories = {};
+
+            rows.forEach(function(row) {
+                var factory = String(row.factory_name || '').trim();
+                if (factory) factories[factory] = true;
+            });
+
+            var sorted = Object.keys(factories).sort(function(a, b) {
+                return a.localeCompare(b);
+            });
+
+            var html = '<option value="">All Factory</option>';
+            sorted.forEach(function(factory) {
+                html += '<option value="' + e(factory) + '">' + e(factory) + '</option>';
+            });
+
+            factoryFilter.innerHTML = html;
+
+            if (currentValue && factories[currentValue]) {
+                factoryFilter.value = currentValue;
+            } else if (currentValue) {
+                factoryFilter.value = '';
+            }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFiltersAndRender);
+        }
+        if (statusFilter) {
+            statusFilter.addEventListener('change', applyFiltersAndRender);
+        }
+        if (factoryFilter) {
+            factoryFilter.addEventListener('change', applyFiltersAndRender);
+        }
+        if (dateFilter) {
+            dateFilter.addEventListener('change', applyFiltersAndRender);
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                statusFilter.value = '';
+                factoryFilter.value = '';
+                dateFilter.value = '';
+                applyFiltersAndRender();
+            });
+        }
+
+        function buildRowHtml(row, rowClass) {
+            var st = (row.po_status || '').toLowerCase();
+            var showExp = ['sent_to_schedule_delivery', 'delivery_date_scheduled', 'done'].includes(st);
+            var showSch = ['delivery_date_scheduled', 'done'].includes(st);
+            var canDone = row.can_mark_done ? true : ((st === 'delivery_date_scheduled') && <?= json_encode(isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ?>);
+
+            var expectedHtml = '<span style="color:#ccc;font-size:12px">—</span>';
+            if (showExp && row.expected_delivery_date) {
+                expectedHtml =
+                    '<span class="schedule-pill">' +
                     '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                    e(fmtDate(row.delivery_schedule_date)) +
-                '</span>';
-        } else {
-            scheduleHtml =
-                '<span class="needs-schedule">' +
-                    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-                    'Not scheduled' +
-                '</span>';
-        }
-    }
+                    e(fmtDate(row.expected_delivery_date)) +
+                    '</span>';
+            }
 
-    var pdfHtml = row.pdf_file_path
-        ? '<a href="' + e(row.pdf_file_path) + '" target="_blank" class="action-link action-pdf">' +
-            '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF' +
-          '</a>'
-        : '<span class="no-pdf">No PDF</span>';
+            var scheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
+            if (showSch) {
+                if (row.delivery_schedule_date) {
+                    scheduleHtml =
+                        '<span class="schedule-pill">' +
+                        '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                        e(fmtDate(row.delivery_schedule_date)) +
+                        '</span>';
+                } else {
+                    scheduleHtml =
+                        '<span class="needs-schedule">' +
+                        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+                        'Not scheduled' +
+                        '</span>';
+                }
+            }
 
-    var doneHtml = '';
-    if (canDone) {
-        doneHtml =
-            '<form method="POST" action="mark_po_done.php" onsubmit="return confirm(\'Mark this PO as done?\');" style="display:inline;">' +
-                '<input type="hidden" name="po_id" value="' + e(row.id) + '">' +
-                '<button type="submit" class="action-btn action-done">' +
+            var pdfHtml = row.pdf_file_path ?
+                '<a href="' + e(row.pdf_file_path) + '" target="_blank" class="action-link action-pdf">' +
+                '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF' +
+                '</a>' :
+                '<span class="no-pdf">No PDF</span>';
+
+            var doneHtml = '';
+            if (canDone) {
+                doneHtml =
+                    '<form method="POST" action="mark_po_done.php" onsubmit="return confirm(\'Mark this PO as done?\');" style="display:inline;">' +
+                    '<input type="hidden" name="po_id" value="' + e(row.id) + '">' +
+                    '<button type="submit" class="action-btn action-done">' +
                     '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done' +
-                '</button>' +
-            '</form>';
-    }
+                    '</button>' +
+                    '</form>';
+            }
 
-    return '' +
-    '<tr class="' + e(rowClass) + '" data-po-id="' + e(row.id) + '" data-po-status="' + e(row.po_status || '') + '">' +
-        '<td style="color:#bbb;font-size:12px;font-family:\'DM Mono\',monospace">' + e(row.id) + '</td>' +
-        '<td><span class="po-num">' + e(row.po_number || '') + '</span></td>' +
-        '<td><span class="badge ' + platClass(row.platform) + '">' + e(row.platform || '—') + '</span></td>' +
-        '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + e(row.factory_name || '') + '">' + e(row.factory_name || '—') + '</td>' +
-        '<td style="font-size:12px;color:#666">' + e(fmtDate(row.release_date)) + '</td>' +
-        '<td style="font-size:12px;color:#666">' + e(fmtDate(row.expiry_date)) + '</td>' +
-        '<td>' +
-            '<span class="status-badge ' + statusClass(row.po_status) + '">' +
+            return '' +
+                '<tr class="' + e(rowClass) + '" data-po-id="' + e(row.id) + '" data-po-status="' + e(row.po_status || '') + '">' +
+                '<td style="color:#bbb;font-size:12px;font-family:\'DM Mono\',monospace">' + e(row.id) + '</td>' +
+                '<td><span class="po-num">' + e(row.po_number || '') + '</span></td>' +
+                '<td><span class="badge ' + platClass(row.platform) + '">' + e(row.platform || '—') + '</span></td>' +
+                '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + e(row.factory_name || '') + '">' + e(row.factory_name || '—') + '</td>' +
+                '<td style="font-size:12px;color:#666">' + e(fmtDate(row.release_date)) + '</td>' +
+                '<td style="font-size:12px;color:#666">' + e(fmtDate(row.expiry_date)) + '</td>' +
+                '<td>' +
+                '<span class="status-badge ' + statusClass(row.po_status) + '">' +
                 '<span class="dot"></span>' + e(formatStatus(row.po_status)) +
-            '</span>' +
-        '</td>' +
-        '<td>' + expectedHtml + '</td>' +
-        '<td>' + scheduleHtml + '</td>' +
-        '<td style="font-size:12px;color:#666">' + e(row.creator_name || '—') + '</td>' +
-        '<td>' +
-            '<div class="action-group">' +
+                '</span>' +
+                '</td>' +
+                '<td>' + expectedHtml + '</td>' +
+                '<td>' + scheduleHtml + '</td>' +
+                '<td style="font-size:12px;color:#666">' + e(row.creator_name || '—') + '</td>' +
+                '<td>' +
+                '<div class="action-group">' +
                 '<a href="po_view.php?id=' + e(row.id) + '" class="action-link action-view">' +
-                    '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View' +
+                '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View' +
                 '</a>' +
                 pdfHtml +
                 doneHtml +
                 '<a href="po_workflow_history.php?po_id=' + e(row.id) + '" class="action-link action-view">' +
-                    '<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History' +
+                '<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History' +
                 '</a>' +
-            '</div>' +
-        '</td>' +
-    '</tr>';
-}
+                '</div>' +
+                '</td>' +
+                '</tr>';
+        }
 
-function statusClass(s) {
-    var m = {
-        'pending':                   'status-pending',
-        'in_progress':               'status-in_progress',
-        'sent_to_schedule_delivery': 'status-sent_to_schedule_delivery',
-        'delivery_date_scheduled':   'status-delivery_date_scheduled',
-        'done':                      'status-done'
-    };
-    return m[(s || '').toLowerCase()] || 'status-other';
-}
+        function statusClass(s) {
+            var m = {
+                'pending': 'status-pending',
+                'in_progress': 'status-in_progress',
+                'sent_to_schedule_delivery': 'status-sent_to_schedule_delivery',
+                'delivery_date_scheduled': 'status-delivery_date_scheduled',
+                'done': 'status-done'
+            };
+            return m[(s || '').toLowerCase()] || 'status-other';
+        }
 
-function platClass(p) {
-    var m = {
-        'instamart':'badge-instamart',
-        'blinkit':'badge-blinkit',
-        'zepto':'badge-zepto',
-        'flipkart':'badge-flipkart'
-    };
-    return m[(p || '').toLowerCase()] || 'badge-default';
-}
+        function platClass(p) {
+            var m = {
+                'instamart': 'badge-instamart',
+                'blinkit': 'badge-blinkit',
+                'zepto': 'badge-zepto',
+                'flipkart': 'badge-flipkart'
+            };
+            return m[(p || '').toLowerCase()] || 'badge-default';
+        }
 
-function formatStatus(s) {
-    return (s || 'N/A')
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-}
+        function formatStatus(s) {
+            return (s || 'N/A')
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, function(c) {
+                    return c.toUpperCase();
+                });
+        }
 
-function fmtDate(d) {
-    if (!d) return '—';
+        function fmtDate(d) {
+            if (!d) return '—';
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
-        var parts = d.split('-');
-        return parts[2] + '-' + parts[1] + '-' + parts[0];
+            if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+                var parts = d.split('-');
+                return parts[2] + '-' + parts[1] + '-' + parts[0];
+            }
+
+            var dt = new Date(d);
+            return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-GB');
+        }
+
+        function normalizeDate(d) {
+            if (!d) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+
+            var dt = new Date(d);
+            if (isNaN(dt.getTime())) return '';
+
+            var y = dt.getFullYear();
+            var m = String(dt.getMonth() + 1).padStart(2, '0');
+            var day = String(dt.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+
+        function e(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        populateFactoryFilter(allRows);
+        applyFiltersAndRender();
+
+        function applyProgressBarVisibility(hidden) {
+            if (!progressSection || !toggleProgressBtn) return;
+
+            progressSection.style.display = hidden ? 'none' : '';
+            toggleProgressBtn.textContent = hidden ? 'Show Progress Bars' : 'Hide Progress Bars';
+        }
+
+        if (toggleProgressBtn) {
+            var savedHidden = localStorage.getItem('po_progress_bars_hidden') === '1';
+            applyProgressBarVisibility(savedHidden);
+
+            toggleProgressBtn.addEventListener('click', function() {
+                var isHidden = progressSection.style.display === 'none';
+                var nextHidden = !isHidden;
+
+                applyProgressBarVisibility(nextHidden);
+                localStorage.setItem('po_progress_bars_hidden', nextHidden ? '1' : '0');
+            });
+        }
+
+    })();
+
+    function calculateDateAlertStats(rows, fieldName) {
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        var stats = {
+            total: 0,
+            safe: 0,
+            near: 0,
+            reached: 0,
+            safe_pct: 0,
+            near_pct: 0,
+            reached_pct: 0
+        };
+
+        rows.forEach(function(row) {
+            var raw = row[fieldName];
+            if (!raw || raw === '0000-00-00') return;
+
+            var status = String(row.po_status || '').toLowerCase();
+
+            // Do not count DONE items in schedule date bar
+            if (fieldName === 'delivery_schedule_date' && status === 'done') {
+                return;
+            }
+
+            var dt = new Date(raw);
+            if (isNaN(dt.getTime())) return;
+
+            dt.setHours(0, 0, 0, 0);
+
+            var diffMs = dt.getTime() - today.getTime();
+            var diffDays = Math.floor(diffMs / 86400000);
+
+            stats.total++;
+
+            if (diffDays < 0) {
+                stats.reached++;
+            } else if (diffDays <= 3) {
+                stats.near++;
+            } else {
+                stats.safe++;
+            }
+        });
+
+        if (stats.total > 0) {
+            stats.safe_pct = (stats.safe / stats.total) * 100;
+            stats.near_pct = (stats.near / stats.total) * 100;
+            stats.reached_pct = (stats.reached / stats.total) * 100;
+        }
+
+        return stats;
     }
 
-    var dt = new Date(d);
-    return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-GB');
-}
+    function updateDateAlertBar(prefix, stats, labelText) {
+        var safeEl = document.getElementById(prefix + '-safe');
+        var nearEl = document.getElementById(prefix + '-near');
+        var reachedEl = document.getElementById(prefix + '-reached');
+        var metaEl = document.getElementById(prefix + '-meta');
+        var legendEl = document.getElementById(prefix + '-legend');
 
-function normalizeDate(d) {
-    if (!d) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+        if (safeEl) safeEl.style.width = stats.safe_pct.toFixed(1) + '%';
+        if (nearEl) nearEl.style.width = stats.near_pct.toFixed(1) + '%';
+        if (reachedEl) reachedEl.style.width = stats.reached_pct.toFixed(1) + '%';
 
-    var dt = new Date(d);
-    if (isNaN(dt.getTime())) return '';
+        if (metaEl) {
+            metaEl.textContent = stats.total + ' items with ' + labelText;
+        }
 
-    var y = dt.getFullYear();
-    var m = String(dt.getMonth() + 1).padStart(2, '0');
-    var day = String(dt.getDate()).padStart(2, '0');
-    return y + '-' + m + '-' + day;
-}
-
-function e(s) {
-    return String(s == null ? '' : s)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#039;');
-}
-
-populateFactoryFilter(allRows);
-applyFiltersAndRender();
-
-})();
+        if (legendEl) {
+            legendEl.innerHTML =
+                '<span class="legend-item"><span class="legend-dot legend-safe"></span> Safe: ' + stats.safe + '</span>' +
+                '<span class="legend-item"><span class="legend-dot legend-near"></span> Near: ' + stats.near + '</span>' +
+                '<span class="legend-item"><span class="legend-dot legend-reached"></span> Reached: ' + stats.reached + '</span>';
+        }
+    }
 </script>
 
 <?php include 'partials/footer.php'; ?>
