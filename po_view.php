@@ -160,6 +160,16 @@ $itemResult = $itemStmt->get_result();
     color: #6a1b9a;
   }
 
+  .status-delivery_date_scheduled {
+    background: #ede7f6;
+    color: #6a1b9a;
+  }
+
+  .status-rejected {
+    background: #fce4ec;
+    color: #b71c1c;
+  }
+
   .pdf-links {
     display: flex;
     gap: 10px;
@@ -372,6 +382,27 @@ $itemResult = $itemStmt->get_result();
     stroke-width: 2.5;
   }
 
+  .reschedule-date-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e8eaf6;
+    color: #283593;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .reschedule-date-display svg {
+    width: 12px;
+    height: 12px;
+    stroke: #283593;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
   .not-set {
     color: #aaa;
     font-size: 13px;
@@ -488,6 +519,20 @@ $itemResult = $itemStmt->get_result();
         </div>
       <?php endif; ?>
 
+      <?php if (!empty($po['reschedule_date'])): ?>
+        <div class="info-item">
+          <div class="info-label">Reschedule Date</div>
+          <div class="info-value">
+            <span class="reschedule-date-display">
+              <svg viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <?php echo date('d-m-Y', strtotime($po['reschedule_date'])); ?>
+            </span>
+          </div>
+        </div>
+      <?php endif; ?>
+
     </div>
   </div>
 
@@ -586,6 +631,7 @@ $itemResult = $itemStmt->get_result();
           $itemStmt2->bind_param("i", $po_id);
           $itemStmt2->execute();
           $itemResult2 = $itemStmt2->get_result();
+
           while ($item = $itemResult2->fetch_assoc()):
           ?>
             <tr>

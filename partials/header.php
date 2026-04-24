@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PO Manager</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="shortcut icon" href="assets/images/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
@@ -276,7 +278,7 @@
                         <a href="create_po.php">Create PO</a>
                     <?php endif; ?>
 
-                    <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['super', 'admin'])): ?>
+                    <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['super', 'admin', 'viewer'])): ?>
                         <a href="pending_items.php">Pending Items</a>
                     <?php endif; ?>
                 </div>

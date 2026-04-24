@@ -32,20 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="shortcut icon" href="assets/images/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
             min-height: 100vh;
             background:
-                radial-gradient(circle at top left, rgba(255,255,255,0.75), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(255,255,255,0.4), transparent 22%),
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.75), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.4), transparent 22%),
                 #f0f2f5;
             font-family: 'DM Sans', sans-serif;
             display: flex;
@@ -215,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     </style>
 </head>
+
 <body>
     <div class="login-shell">
         <div class="login-brand">
@@ -262,4 +268,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </body>
+
 </html>

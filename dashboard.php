@@ -15,7 +15,8 @@ $total      = count($rows);
 $done       = count(array_filter($rows, fn($r) => strtolower($r['po_status'] ?? '') === 'done'));
 $scheduled  = count(array_filter($rows, fn($r) => strtolower($r['po_status'] ?? '') === 'delivery_date_scheduled'));
 $needsSched = count(array_filter($rows, fn($r) => strtolower($r['po_status'] ?? '') === 'sent_to_schedule_delivery'));
-$open       = $total - $done;
+$rejected   = count(array_filter($rows, fn($r) => strtolower($r['po_status'] ?? '') === 'rejected'));
+$open       = $total - $done - $rejected;
 
 $factoryList = [];
 foreach ($rows as $r) {
@@ -118,7 +119,7 @@ ksort($factoryList);
     /* Stats */
     .stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 14px;
         margin-bottom: 24px;
     }
@@ -528,6 +529,36 @@ ksort($factoryList);
         background: #43a047;
     }
 
+    .status-rejected {
+        background: #fce4ec;
+        color: #b71c1c;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .status-rejected .dot {
+        background: #e53935;
+    }
+
+    .status-rejected .info-icon {
+        width: 12px;
+        height: 12px;
+        stroke: #b71c1c;
+        fill: none;
+        stroke-width: 2.2;
+        margin-left: 3px;
+        flex-shrink: 0;
+    }
+
+    .status-rescheduled {
+        background: #e8eaf6;
+        color: #283593;
+    }
+
+    .status-rescheduled .dot {
+        background: #3949ab;
+    }
+
     .status-other {
         background: #f0f2f5;
         color: #666;
@@ -535,6 +566,54 @@ ksort($factoryList);
 
     .status-other .dot {
         background: #bbb;
+    }
+
+    /* Rejection reason popover */
+    #reject-reason-popover {
+        display: none;
+        position: fixed;
+        z-index: 9998;
+        max-width: 280px;
+        background: #1a1a2e;
+        color: #fff;
+        border-radius: 10px;
+        padding: 12px 14px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12.5px;
+        line-height: 1.5;
+        pointer-events: none;
+    }
+
+    #reject-reason-popover.visible {
+        display: block;
+        pointer-events: auto;
+    }
+
+    #reject-reason-popover .pop-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #e57373;
+        margin-bottom: 5px;
+    }
+
+    #reject-reason-popover .pop-text {
+        color: #f0f0f0;
+        word-break: break-word;
+    }
+
+    #reject-reason-popover::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: var(--arrow-left, 18px);
+        width: 12px;
+        height: 12px;
+        background: #1a1a2e;
+        transform: rotate(45deg);
+        border-radius: 2px;
     }
 
     .schedule-pill {
@@ -635,6 +714,325 @@ ksort($factoryList);
 
     .action-done:hover {
         background: #1b5e20;
+    }
+
+    .action-reject {
+        color: #fff;
+        background: #c62828;
+    }
+
+    .action-reject:hover {
+        background: #b71c1c;
+    }
+
+    .action-reschedule {
+        color: #fff;
+        background: #3949ab;
+    }
+
+    .action-reschedule:hover {
+        background: #283593;
+    }
+
+    /* ── Reschedule Modal ─────────────────────────────────────────────────── */
+    .reschedule-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .reschedule-modal-overlay.active {
+        display: flex;
+    }
+
+    .reschedule-modal {
+        background: #fff;
+        border-radius: 16px;
+        padding: 28px 28px 24px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .reschedule-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .reschedule-modal-icon {
+        width: 40px;
+        height: 40px;
+        background: #e8eaf6;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .reschedule-modal-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: #3949ab;
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .reschedule-modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .reschedule-modal-subtitle {
+        font-size: 12px;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    .reschedule-modal label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .reschedule-modal input[type="date"] {
+        width: 100%;
+        border: 1.5px solid #e0e3e8;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        color: #1a1a2e;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+
+    .reschedule-modal input[type="date"]:focus {
+        border-color: #3949ab;
+    }
+
+    .reschedule-modal-note {
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: #e8eaf6;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #3949ab;
+        font-weight: 500;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .reschedule-modal-note svg {
+        width: 14px;
+        height: 14px;
+        stroke: #3949ab;
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .reschedule-modal-error {
+        display: none;
+        font-size: 12px;
+        color: #c62828;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    .reschedule-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .reschedule-modal-cancel {
+        padding: 9px 18px;
+        border-radius: 9px;
+        border: 1.5px solid #e0e3e8;
+        background: #f0f2f5;
+        color: #555;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+    }
+
+    .reschedule-modal-cancel:hover {
+        background: #e4e7ec;
+    }
+
+    .reschedule-modal-confirm {
+        padding: 9px 20px;
+        border-radius: 9px;
+        border: none;
+        background: #3949ab;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .reschedule-modal-confirm:hover {
+        background: #283593;
+    }
+
+    /* Rejection modal */
+    .reject-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .reject-modal-overlay.active {
+        display: flex;
+    }
+
+    .reject-modal {
+        background: #fff;
+        border-radius: 16px;
+        padding: 28px 28px 24px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .reject-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .reject-modal-icon {
+        width: 40px;
+        height: 40px;
+        background: #fce4ec;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .reject-modal-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: #c62828;
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .reject-modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .reject-modal-subtitle {
+        font-size: 12px;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    .reject-modal label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .reject-modal textarea {
+        width: 100%;
+        min-height: 100px;
+        border: 1.5px solid #e0e3e8;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        color: #1a1a2e;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+
+    .reject-modal textarea:focus {
+        border-color: #c62828;
+    }
+
+    .reject-modal-error {
+        display: none;
+        font-size: 12px;
+        color: #c62828;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    .reject-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .reject-modal-cancel {
+        padding: 9px 18px;
+        border-radius: 9px;
+        border: 1.5px solid #e0e3e8;
+        background: #f0f2f5;
+        color: #555;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+    }
+
+    .reject-modal-cancel:hover {
+        background: #e4e7ec;
+    }
+
+    .reject-modal-confirm {
+        padding: 9px 20px;
+        border-radius: 9px;
+        border: none;
+        background: #c62828;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .reject-modal-confirm:hover {
+        background: #b71c1c;
     }
 
     .no-pdf {
@@ -794,6 +1192,15 @@ ksort($factoryList);
     .progress-toggle-btn:hover {
         background: #2d2d4e;
     }
+
+    .table-scroll-drag {
+        cursor: grab;
+        user-select: none;
+    }
+
+    .table-scroll-drag.dragging {
+        cursor: grabbing;
+    }
 </style>
 
 <div class="dash-page">
@@ -860,6 +1267,11 @@ ksort($factoryList);
             <div class="stat-value" id="stat-done" style="color:#2e7d32"><?= $done ?></div>
             <div class="stat-sub">Completed</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value" id="stat-rejected" style="color:#c62828"><?= $rejected ?></div>
+            <div class="stat-sub">Rejected orders</div>
+        </div>
     </div>
 
     <div class="progress-toggle-wrap">
@@ -872,6 +1284,7 @@ ksort($factoryList);
         <?php include 'po_done_rate_bar.php'; ?>
         <?php include 'po_date_alert_bars.php'; ?>
     </div>
+
     <div class="table-card">
         <div class="table-card-header">
             <div class="table-card-header-left">
@@ -907,6 +1320,7 @@ ksort($factoryList);
                             <option value="sent_to_schedule_delivery">Sent To Schedule Delivery</option>
                             <option value="delivery_date_scheduled">Delivery Date Scheduled</option>
                             <option value="done">Done</option>
+                            <option value="rejected">Rejected</option>
                         </select>
                     </div>
 
@@ -942,7 +1356,7 @@ ksort($factoryList);
             </div>
         </div>
 
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" class="table-scroll-drag" id="table-scroll-drag">
             <table class="po-table" id="po-table">
                 <thead>
                     <tr>
@@ -955,6 +1369,7 @@ ksort($factoryList);
                         <th>Status</th>
                         <th>Expected Delivery</th>
                         <th>Schedule Date</th>
+                        <th>Reschedule Date</th>
                         <th>Created By</th>
                         <th>Actions</th>
                     </tr>
@@ -962,7 +1377,7 @@ ksort($factoryList);
                 <tbody id="po-tbody">
                     <?php if (empty($rows)): ?>
                         <tr id="empty-row">
-                            <td colspan="11">
+                            <td colspan="12">
                                 <div class="empty-state">
                                     <svg viewBox="0 0 24 24">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -985,15 +1400,22 @@ ksort($factoryList);
                             $st     = strtolower($row['po_status'] ?? '');
                             $sClass = match ($st) {
                                 'pending'                    => 'status-pending',
-                                'in_progress'               => 'status-in_progress',
-                                'sent_to_schedule_delivery' => 'status-sent_to_schedule_delivery',
-                                'delivery_date_scheduled'   => 'status-delivery_date_scheduled',
-                                'done'                      => 'status-done',
-                                default                     => 'status-other',
+                                'in_progress'                => 'status-in_progress',
+                                'sent_to_schedule_delivery'  => 'status-sent_to_schedule_delivery',
+                                'delivery_date_scheduled'    => 'status-delivery_date_scheduled',
+                                'done'                       => 'status-done',
+                                'rejected'                   => 'status-rejected',
+                                default                      => 'status-other',
                             };
-                            $showExp  = in_array($st, ['sent_to_schedule_delivery', 'delivery_date_scheduled', 'done']);
-                            $showSch  = in_array($st, ['delivery_date_scheduled', 'done']);
-                            $canDone  = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && $st === 'delivery_date_scheduled');
+                            $isAdmin   = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+                            // Mark done / reject: only for delivery_date_scheduled
+                            $canDone = $isAdmin && $st === 'delivery_date_scheduled';
+                            $canReject = $isAdmin && $st === 'delivery_date_scheduled';
+                            $canReschedule = $isAdmin && in_array($st, ['delivery_date_scheduled', 'rejected']);
+                            // Show date columns whenever data exists
+                            $showExp = !empty($row['expected_delivery_date']);
+                            $showSch = !empty($row['delivery_schedule_date']);
+                            $showReschedule = !empty($row['reschedule_date']);
                         ?>
                             <tr data-po-id="<?= (int)$row['id'] ?>" data-po-status="<?= htmlspecialchars($row['po_status'] ?? '') ?>">
                                 <td style="color:#bbb;font-size:12px;font-family:'DM Mono',monospace"><?= $row['id'] ?></td>
@@ -1006,14 +1428,27 @@ ksort($factoryList);
                                 <td style="font-size:12px;color:#666"><?= !empty($row['expiry_date']) ? date('d-m-Y', strtotime($row['expiry_date'])) : '—' ?></td>
 
                                 <td>
-                                    <span class="status-badge <?= $sClass ?>">
-                                        <span class="dot"></span>
-                                        <?= ucfirst(str_replace('_', ' ', $row['po_status'] ?? 'N/A')) ?>
-                                    </span>
+                                    <?php if ($st === 'rejected'): ?>
+                                        <span class="status-badge status-rejected"
+                                            onclick="showRejectReason(this, <?= json_encode($row['rejection_reason'] ?? '') ?>)">
+                                            <span class="dot"></span>
+                                            Rejected
+                                            <svg class="info-icon" viewBox="0 0 24 24">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <line x1="12" y1="8" x2="12" y2="8" />
+                                                <line x1="12" y1="12" x2="12" y2="16" />
+                                            </svg>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="status-badge <?= $sClass ?>">
+                                            <span class="dot"></span>
+                                            <?= ucfirst(str_replace('_', ' ', $row['po_status'] ?? 'N/A')) ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td>
-                                    <?php if ($showExp && !empty($row['expected_delivery_date'])): ?>
+                                    <?php if ($showExp): ?>
                                         <span class="schedule-pill">
                                             <svg viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1025,23 +1460,24 @@ ksort($factoryList);
 
                                 <td>
                                     <?php if ($showSch): ?>
-                                        <?php if (!empty($row['delivery_schedule_date'])): ?>
-                                            <span class="schedule-pill">
-                                                <svg viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                                <?= date('d-m-Y', strtotime($row['delivery_schedule_date'])) ?>
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="needs-schedule">
-                                                <svg viewBox="0 0 24 24">
-                                                    <circle cx="12" cy="12" r="10" />
-                                                    <line x1="12" y1="8" x2="12" y2="12" />
-                                                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                                                </svg>
-                                                Not scheduled
-                                            </span>
-                                        <?php endif; ?>
+                                        <span class="schedule-pill">
+                                            <svg viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <?= date('d-m-Y', strtotime($row['delivery_schedule_date'])) ?>
+                                        </span>
+                                    <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
+                                </td>
+
+                                <!-- Reschedule Date column -->
+                                <td>
+                                    <?php if ($showReschedule): ?>
+                                        <span class="schedule-pill" style="background:#e8eaf6;color:#283593;">
+                                            <svg viewBox="0 0 24 24" style="stroke:#283593">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <?= date('d-m-Y', strtotime($row['reschedule_date'])) ?>
+                                        </span>
                                     <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
                                 </td>
 
@@ -1055,6 +1491,7 @@ ksort($factoryList);
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>View
                                         </a>
+
                                         <?php if (!empty($row['pdf_file_path'])): ?>
                                             <a href="<?= htmlspecialchars($row['pdf_file_path']) ?>" target="_blank" class="action-link action-pdf">
                                                 <svg viewBox="0 0 24 24">
@@ -1065,6 +1502,18 @@ ksort($factoryList);
                                         <?php else: ?>
                                             <span class="no-pdf">No PDF</span>
                                         <?php endif; ?>
+
+                                        <?php if ($canReschedule): ?>
+                                            <button type="button" class="action-btn action-reschedule"
+                                                onclick="openRescheduleModal(<?= (int)$row['id'] ?>, '<?= htmlspecialchars(addslashes($row['po_number']), ENT_QUOTES) ?>')">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M23 4v6h-6" />
+                                                    <path d="M1 20v-6h6" />
+                                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                                                </svg>Reschedule
+                                            </button>
+                                        <?php endif; ?>
+
                                         <?php if ($canDone): ?>
                                             <form method="POST" action="mark_po_done.php" onsubmit="return confirm('Mark this PO as done?');" style="display:inline;">
                                                 <input type="hidden" name="po_id" value="<?= (int)$row['id'] ?>">
@@ -1075,6 +1524,17 @@ ksort($factoryList);
                                                 </button>
                                             </form>
                                         <?php endif; ?>
+
+                                        <?php if ($canReject): ?>
+                                            <button type="button" class="action-btn action-reject"
+                                                onclick="openRejectModal(<?= (int)$row['id'] ?>, '<?= htmlspecialchars(addslashes($row['po_number']), ENT_QUOTES) ?>')">
+                                                <svg viewBox="0 0 24 24">
+                                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                                </svg>Reject
+                                            </button>
+                                        <?php endif; ?>
+
                                         <a href="po_workflow_history.php?po_id=<?= $row['id'] ?>" class="action-link action-view">
                                             <svg viewBox="0 0 24 24">
                                                 <path d="M12 8v4l3 3" />
@@ -1092,14 +1552,89 @@ ksort($factoryList);
     </div>
 </div>
 
+<!-- Rejection reason popover (singleton) -->
+<div id="reject-reason-popover">
+    <div class="pop-label">Rejection Reason</div>
+    <div class="pop-text" id="reject-reason-popover-text"></div>
+</div>
+
+<!-- ── Reschedule Modal ──────────────────────────────────────────────────── -->
+<div class="reschedule-modal-overlay" id="reschedule-modal-overlay">
+    <div class="reschedule-modal" role="dialog" aria-modal="true" aria-labelledby="reschedule-modal-title">
+        <div class="reschedule-modal-header">
+            <div class="reschedule-modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M23 4v6h-6" />
+                    <path d="M1 20v-6h6" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+            </div>
+            <div>
+                <div class="reschedule-modal-title" id="reschedule-modal-title">Reschedule Delivery</div>
+                <div class="reschedule-modal-subtitle" id="reschedule-modal-po-num"></div>
+            </div>
+        </div>
+        <form method="POST" action="reschedule_po.php" id="reschedule-modal-form">
+            <input type="hidden" name="po_id" id="reschedule-modal-po-id">
+            <label for="reschedule-date-input">New Delivery Date <span style="color:#3949ab">*</span></label>
+            <input type="date" id="reschedule-date-input" name="reschedule_date" min="<?= date('Y-m-d') ?>">
+            <div class="reschedule-modal-note">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                After saving the reschedule date, the PO status will move to <strong>Delivery Date Scheduled</strong>, enabling Mark Done or Reject actions.
+            </div>
+            <div class="reschedule-modal-error" id="reschedule-modal-error">Please select a reschedule date before confirming.</div>
+            <div class="reschedule-modal-actions">
+                <button type="button" class="reschedule-modal-cancel" id="reschedule-modal-cancel">Cancel</button>
+                <button type="submit" class="reschedule-modal-confirm">Save Reschedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Rejection Modal ───────────────────────────────────────────────────── -->
+<div class="reject-modal-overlay" id="reject-modal-overlay">
+    <div class="reject-modal" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
+        <div class="reject-modal-header">
+            <div class="reject-modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </div>
+            <div>
+                <div class="reject-modal-title" id="reject-modal-title">Reject Purchase Order</div>
+                <div class="reject-modal-subtitle" id="reject-modal-po-num"></div>
+            </div>
+        </div>
+        <form method="POST" action="mark_po_rejected.php" id="reject-modal-form">
+            <input type="hidden" name="po_id" id="reject-modal-po-id">
+            <label for="reject-reason-textarea">Reason for Rejection <span style="color:#c62828">*</span></label>
+            <textarea id="reject-reason-textarea" name="rejection_reason"
+                placeholder="Describe why this PO is being rejected (e.g. delivery was refused, damaged goods, wrong items…)"
+                maxlength="1000"></textarea>
+            <div class="reject-modal-error" id="reject-modal-error">Please enter a rejection reason before confirming.</div>
+            <div class="reject-modal-actions">
+                <button type="button" class="reject-modal-cancel" id="reject-modal-cancel">Cancel</button>
+                <button type="submit" class="reject-modal-confirm">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     var progressSection = document.getElementById('progress-bars-section');
     var toggleProgressBtn = document.getElementById('toggle-progress-bars');
+
     (function() {
         'use strict';
 
         var allRows = <?= json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
         var knownRows = {};
+        var IS_ADMIN = <?= json_encode(isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ?>;
 
         var searchInput = document.getElementById('search-input');
         var statusFilter = document.getElementById('status-filter');
@@ -1112,6 +1647,7 @@ ksort($factoryList);
         var secs = 10;
         var polling = false;
 
+        /* ── Notifications ── */
         function canNotify() {
             return ('Notification' in window) && Notification.permission === 'granted';
         }
@@ -1121,8 +1657,7 @@ ksort($factoryList);
             try {
                 new Notification(title, {
                     body: body,
-                    icon: '/favicon.ico',
-                    badge: '/favicon.ico',
+                    icon: '/favicon.ico'
                 });
             } catch (_) {}
         }
@@ -1142,9 +1677,7 @@ ksort($factoryList);
             nbAllow.addEventListener('click', function() {
                 Notification.requestPermission().then(function(p) {
                     banner.style.display = 'none';
-                    if (p === 'granted') {
-                        pushNotif('✅ Notifications enabled', 'You\'ll get alerts for PO status changes.');
-                    }
+                    if (p === 'granted') pushNotif('✅ Notifications enabled', 'You\'ll get alerts for PO status changes.');
                 });
             });
         }
@@ -1166,6 +1699,7 @@ ksort($factoryList);
             }, 600);
         }
 
+        /* ── Polling ── */
         function snapshotRows(rows) {
             var out = {};
             rows.forEach(function(row) {
@@ -1177,6 +1711,7 @@ ksort($factoryList);
             });
             return out;
         }
+
         knownRows = snapshotRows(allRows);
 
         function tick() {
@@ -1224,7 +1759,6 @@ ksort($factoryList);
                     try {
                         data = JSON.parse(text);
                     } catch (e) {
-                        console.error('PO poller: bad JSON from get_po_status.php:', text.substring(0, 300));
                         throw e;
                     }
 
@@ -1236,7 +1770,6 @@ ksort($factoryList);
                         applyFiltersAndRender();
                         setPillState('done');
                     } else {
-                        console.warn('PO poller: server error:', data.message);
                         setPillState('idle');
                     }
                 })
@@ -1254,20 +1787,19 @@ ksort($factoryList);
             rows.forEach(function(row) {
                 var id = String(row.id);
                 var oldRow = knownRows[id];
-                var newStatus = row.po_status || '';
+                var newSt = row.po_status || '';
 
                 if (!oldRow) {
                     pushNotif('🆕 New Purchase Order', 'PO ' + (row.po_number || '') + ' · ' + (row.platform || 'N/A'));
-                } else if ((oldRow.po_status || '') !== newStatus) {
-                    pushNotif(
-                        '📋 PO Status Changed',
+                } else if ((oldRow.po_status || '') !== newSt) {
+                    pushNotif('📋 PO Status Changed',
                         'PO ' + (row.po_number || '') + ': ' +
-                        formatStatus(oldRow.po_status) + ' → ' + formatStatus(newStatus)
-                    );
+                        formatStatus(oldRow.po_status) + ' → ' + formatStatus(newSt));
                 }
             });
         }
 
+        /* ── Filters ── */
         function getActiveFilters() {
             return {
                 search: (searchInput.value || '').trim().toLowerCase(),
@@ -1279,35 +1811,18 @@ ksort($factoryList);
 
         function rowMatchesFilters(row, filters) {
             var searchText = [
-                row.id,
-                row.po_number,
-                row.platform,
-                row.factory_name,
-                row.po_status,
-                row.creator_name,
-                row.release_date,
-                row.expiry_date,
-                row.expected_delivery_date,
-                row.delivery_schedule_date
+                row.id, row.po_number, row.platform, row.factory_name,
+                row.po_status, row.creator_name, row.release_date,
+                row.expiry_date, row.expected_delivery_date,
+                row.delivery_schedule_date, row.reschedule_date
             ].join(' ').toLowerCase();
 
-            if (filters.search && !searchText.includes(filters.search)) {
-                return false;
-            }
-
-            if (filters.status && String(row.po_status || '').toLowerCase() !== filters.status) {
-                return false;
-            }
-
-            if (filters.factory && String(row.factory_name || '') !== filters.factory) {
-                return false;
-            }
-
+            if (filters.search && !searchText.includes(filters.search)) return false;
+            if (filters.status && String(row.po_status || '').toLowerCase() !== filters.status) return false;
+            if (filters.factory && String(row.factory_name || '') !== filters.factory) return false;
             if (filters.date) {
-                var rowDate = normalizeDate(row.release_date);
-                if (rowDate !== filters.date) return false;
+                if (normalizeDate(row.release_date) !== filters.date) return false;
             }
-
             return true;
         }
 
@@ -1320,28 +1835,21 @@ ksort($factoryList);
             renderTable(filteredRows);
             updateCards(filteredRows);
 
-            var expiryStats = calculateDateAlertStats(filteredRows, 'expiry_date');
-            var expectedStats = calculateDateAlertStats(filteredRows, 'expected_delivery_date');
-            var scheduleStats = calculateDateAlertStats(filteredRows, 'delivery_schedule_date');
-
-            updateDateAlertBar('expiry', expiryStats, 'expiry date');
-            updateDateAlertBar('expected', expectedStats, 'expected delivery date');
-            updateDateAlertBar('schedule', scheduleStats, 'schedule date');
+            updateDateAlertBar('expiry', calculateDateAlertStats(filteredRows, 'expiry_date'), 'expiry date');
+            updateDateAlertBar('expected', calculateDateAlertStats(filteredRows, 'expected_delivery_date'), 'expected delivery date');
+            updateDateAlertBar('schedule', calculateDateAlertStats(filteredRows, 'delivery_schedule_date'), 'schedule date');
         }
 
+        /* ── Render table ── */
         function renderTable(rows) {
             var tbody = document.getElementById('po-tbody');
-
             if (!rows.length) {
                 tbody.innerHTML =
-                    '<tr id="empty-row">' +
-                    '<td colspan="11">' +
+                    '<tr id="empty-row"><td colspan="12">' +
                     '<div class="empty-state">' +
                     '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
                     '<div>No purchase orders found for selected filters</div>' +
-                    '</div>' +
-                    '</td>' +
-                    '</tr>';
+                    '</div></td></tr>';
                 return;
             }
 
@@ -1349,14 +1857,15 @@ ksort($factoryList);
             rows.forEach(function(row) {
                 html += buildRowHtml(row, '');
             });
-
             tbody.innerHTML = html;
         }
 
+        /* ── Stats cards ── */
         function updateCards(rows) {
             var stats = {
                 total: rows.length,
                 done: 0,
+                rejected: 0,
                 scheduled: 0,
                 needs_schedule: 0,
                 open: 0
@@ -1365,12 +1874,12 @@ ksort($factoryList);
             rows.forEach(function(r) {
                 var st = String(r.po_status || '').toLowerCase();
                 if (st === 'done') stats.done++;
+                if (st === 'rejected') stats.rejected++;
                 if (st === 'delivery_date_scheduled') stats.scheduled++;
                 if (st === 'sent_to_schedule_delivery') stats.needs_schedule++;
             });
 
-            stats.open = stats.total - stats.done;
-
+            stats.open = stats.total - stats.done - stats.rejected;
             processStats(stats);
         }
 
@@ -1382,7 +1891,8 @@ ksort($factoryList);
                 'stat-open': stats.open,
                 'stat-needs': stats.needs_schedule,
                 'stat-scheduled': stats.scheduled,
-                'stat-done': stats.done
+                'stat-done': stats.done,
+                'stat-rejected': stats.rejected || 0
             };
 
             Object.keys(pairs).forEach(function(id) {
@@ -1401,65 +1911,59 @@ ksort($factoryList);
                 }
             });
 
+            /* Done-rate bar */
             var doneRate = stats.total > 0 ? ((stats.done / stats.total) * 100) : 0;
+            var rejectedRate = stats.total > 0 ? (((stats.rejected || 0) / stats.total) * 100) : 0;
+            var openCount = Math.max(stats.total - stats.done - (stats.rejected || 0), 0);
+            var openRate = stats.total > 0 ? ((openCount / stats.total) * 100) : 0;
+
             var roundedRate = Math.round(doneRate * 10) / 10;
+            var roundedRej = Math.round(rejectedRate * 10) / 10;
+            var roundedOpen = Math.round(openRate * 10) / 10;
 
             var rateFill = document.getElementById('po-done-rate-fill');
             var rateText = document.getElementById('po-done-rate-text');
             var rateMeta = document.getElementById('po-done-rate-meta');
+            var rejectFill = document.getElementById('po-rejected-rate-fill');
+            var rejectText = document.getElementById('po-rejected-rate-text');
+            var openFill = document.getElementById('po-open-rate-fill');
+            var openText = document.getElementById('po-open-rate-text');
 
-            if (rateFill) {
-                rateFill.style.width = roundedRate + '%';
-            }
-
-            if (rateText) {
-                rateText.textContent = roundedRate + '%';
-            }
+            if (rateFill) rateFill.style.width = roundedRate + '%';
+            if (rateText) rateText.textContent = roundedRate + '%';
+            if (rejectFill) rejectFill.style.width = roundedRej + '%';
+            if (rejectText) rejectText.textContent = roundedRej + '%';
+            if (openFill) openFill.style.width = roundedOpen + '%';
+            if (openText) openText.textContent = roundedOpen + '%';
 
             if (rateMeta) {
-                rateMeta.textContent = stats.done + ' of ' + stats.total + ' purchase orders completed';
+                rateMeta.textContent = stats.done + ' done · ' + (stats.rejected || 0) + ' rejected · ' + stats.total + ' total';
             }
         }
 
         function populateFactoryFilter(rows) {
             var currentValue = factoryFilter.value;
             var factories = {};
-
             rows.forEach(function(row) {
-                var factory = String(row.factory_name || '').trim();
-                if (factory) factories[factory] = true;
+                var f = String(row.factory_name || '').trim();
+                if (f) factories[f] = true;
             });
-
             var sorted = Object.keys(factories).sort(function(a, b) {
                 return a.localeCompare(b);
             });
-
             var html = '<option value="">All Factory</option>';
-            sorted.forEach(function(factory) {
-                html += '<option value="' + e(factory) + '">' + e(factory) + '</option>';
+            sorted.forEach(function(f) {
+                html += '<option value="' + e(f) + '">' + e(f) + '</option>';
             });
-
             factoryFilter.innerHTML = html;
-
-            if (currentValue && factories[currentValue]) {
-                factoryFilter.value = currentValue;
-            } else if (currentValue) {
-                factoryFilter.value = '';
-            }
+            if (currentValue && factories[currentValue]) factoryFilter.value = currentValue;
+            else if (currentValue) factoryFilter.value = '';
         }
 
-        if (searchInput) {
-            searchInput.addEventListener('input', applyFiltersAndRender);
-        }
-        if (statusFilter) {
-            statusFilter.addEventListener('change', applyFiltersAndRender);
-        }
-        if (factoryFilter) {
-            factoryFilter.addEventListener('change', applyFiltersAndRender);
-        }
-        if (dateFilter) {
-            dateFilter.addEventListener('change', applyFiltersAndRender);
-        }
+        if (searchInput) searchInput.addEventListener('input', applyFiltersAndRender);
+        if (statusFilter) statusFilter.addEventListener('change', applyFiltersAndRender);
+        if (factoryFilter) factoryFilter.addEventListener('change', applyFiltersAndRender);
+        if (dateFilter) dateFilter.addEventListener('change', applyFiltersAndRender);
         if (clearBtn) {
             clearBtn.addEventListener('click', function() {
                 searchInput.value = '';
@@ -1470,14 +1974,21 @@ ksort($factoryList);
             });
         }
 
+        /* ── Build row HTML ── */
         function buildRowHtml(row, rowClass) {
             var st = (row.po_status || '').toLowerCase();
-            var showExp = ['sent_to_schedule_delivery', 'delivery_date_scheduled', 'done'].includes(st);
-            var showSch = ['delivery_date_scheduled', 'done'].includes(st);
-            var canDone = row.can_mark_done ? true : ((st === 'delivery_date_scheduled') && <?= json_encode(isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ?>);
 
+            // Show date columns whenever data exists (regardless of status)
+            var showExp = !!row.expected_delivery_date;
+            var showSch = !!row.delivery_schedule_date;
+            var showReschedule = !!row.reschedule_date;
+
+            var canDone = IS_ADMIN && st === 'delivery_date_scheduled';
+            var canReschedule = IS_ADMIN && ['delivery_date_scheduled', 'rejected'].includes(st);
+
+            /* Expected delivery */
             var expectedHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-            if (showExp && row.expected_delivery_date) {
+            if (showExp) {
                 expectedHtml =
                     '<span class="schedule-pill">' +
                     '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
@@ -1485,38 +1996,71 @@ ksort($factoryList);
                     '</span>';
             }
 
+            /* Schedule date */
             var scheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
             if (showSch) {
-                if (row.delivery_schedule_date) {
-                    scheduleHtml =
-                        '<span class="schedule-pill">' +
-                        '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                        e(fmtDate(row.delivery_schedule_date)) +
-                        '</span>';
-                } else {
-                    scheduleHtml =
-                        '<span class="needs-schedule">' +
-                        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-                        'Not scheduled' +
-                        '</span>';
-                }
+                scheduleHtml =
+                    '<span class="schedule-pill">' +
+                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                    e(fmtDate(row.delivery_schedule_date)) +
+                    '</span>';
             }
 
+            /* Reschedule date */
+            var rescheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
+            if (showReschedule) {
+                rescheduleHtml =
+                    '<span class="schedule-pill" style="background:#e8eaf6;color:#283593;">' +
+                    '<svg viewBox="0 0 24 24" style="stroke:#283593"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                    e(fmtDate(row.reschedule_date)) +
+                    '</span>';
+            }
+
+            /* PDF */
             var pdfHtml = row.pdf_file_path ?
                 '<a href="' + e(row.pdf_file_path) + '" target="_blank" class="action-link action-pdf">' +
-                '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF' +
-                '</a>' :
+                '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</a>' :
                 '<span class="no-pdf">No PDF</span>';
 
-            var doneHtml = '';
+            /* Reschedule button */
+            var rescheduleBtn = '';
+            if (canReschedule) {
+                rescheduleBtn =
+                    '<button type="button" class="action-btn action-reschedule" ' +
+                    'onclick="openRescheduleModal(' + e(row.id) + ', \'' + e(row.po_number || '').replace(/'/g, "\\'") + '\')">' +
+                    '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>' +
+                    '<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reschedule' +
+                    '</button>';
+            }
+
+            /* Mark done + reject buttons */
+            var doneRejectHtml = '';
             if (canDone) {
-                doneHtml =
+                doneRejectHtml =
                     '<form method="POST" action="mark_po_done.php" onsubmit="return confirm(\'Mark this PO as done?\');" style="display:inline;">' +
                     '<input type="hidden" name="po_id" value="' + e(row.id) + '">' +
                     '<button type="submit" class="action-btn action-done">' +
-                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done' +
-                    '</button>' +
-                    '</form>';
+                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done</button>' +
+                    '</form>' +
+                    '<button type="button" class="action-btn action-reject" ' +
+                    'onclick="openRejectModal(' + e(row.id) + ', \'' + e(row.po_number || '').replace(/'/g, "\\'") + '\')">' +
+                    '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reject</button>';
+            }
+
+            /* Status badge */
+            var statusHtml;
+            if (st === 'rejected') {
+                var safeReason = e(row.rejection_reason || 'No reason provided');
+                statusHtml =
+                    '<span class="status-badge status-rejected" onclick="showRejectReason(this, \'' +
+                    safeReason.replace(/'/g, '&#039;') + '\')">' +
+                    '<span class="dot"></span>Rejected' +
+                    '<svg class="info-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/>' +
+                    '<line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg></span>';
+            } else {
+                statusHtml =
+                    '<span class="status-badge ' + statusClass(row.po_status) + '">' +
+                    '<span class="dot"></span>' + e(formatStatus(row.po_status)) + '</span>';
             }
 
             return '' +
@@ -1527,36 +2071,33 @@ ksort($factoryList);
                 '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + e(row.factory_name || '') + '">' + e(row.factory_name || '—') + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(fmtDate(row.release_date)) + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(fmtDate(row.expiry_date)) + '</td>' +
-                '<td>' +
-                '<span class="status-badge ' + statusClass(row.po_status) + '">' +
-                '<span class="dot"></span>' + e(formatStatus(row.po_status)) +
-                '</span>' +
-                '</td>' +
+                '<td>' + statusHtml + '</td>' +
                 '<td>' + expectedHtml + '</td>' +
                 '<td>' + scheduleHtml + '</td>' +
+                '<td>' + rescheduleHtml + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(row.creator_name || '—') + '</td>' +
                 '<td>' +
                 '<div class="action-group">' +
                 '<a href="po_view.php?id=' + e(row.id) + '" class="action-link action-view">' +
-                '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View' +
-                '</a>' +
+                '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</a>' +
                 pdfHtml +
-                doneHtml +
+                rescheduleBtn +
+                doneRejectHtml +
                 '<a href="po_workflow_history.php?po_id=' + e(row.id) + '" class="action-link action-view">' +
-                '<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History' +
-                '</a>' +
-                '</div>' +
-                '</td>' +
+                '<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History</a>' +
+                '</div></td>' +
                 '</tr>';
         }
 
+        /* ── Helpers ── */
         function statusClass(s) {
             var m = {
                 'pending': 'status-pending',
                 'in_progress': 'status-in_progress',
                 'sent_to_schedule_delivery': 'status-sent_to_schedule_delivery',
                 'delivery_date_scheduled': 'status-delivery_date_scheduled',
-                'done': 'status-done'
+                'done': 'status-done',
+                'rejected': 'status-rejected'
             };
             return m[(s || '').toLowerCase()] || 'status-other';
         }
@@ -1572,21 +2113,17 @@ ksort($factoryList);
         }
 
         function formatStatus(s) {
-            return (s || 'N/A')
-                .replace(/_/g, ' ')
-                .replace(/\b\w/g, function(c) {
-                    return c.toUpperCase();
-                });
+            return (s || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, function(c) {
+                return c.toUpperCase();
+            });
         }
 
         function fmtDate(d) {
             if (!d) return '—';
-
             if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
-                var parts = d.split('-');
-                return parts[2] + '-' + parts[1] + '-' + parts[0];
+                var p = d.split('-');
+                return p[2] + '-' + p[1] + '-' + p[0];
             }
-
             var dt = new Date(d);
             return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-GB');
         }
@@ -1594,14 +2131,12 @@ ksort($factoryList);
         function normalizeDate(d) {
             if (!d) return '';
             if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-
             var dt = new Date(d);
             if (isNaN(dt.getTime())) return '';
-
             var y = dt.getFullYear();
-            var m = String(dt.getMonth() + 1).padStart(2, '0');
+            var mo = String(dt.getMonth() + 1).padStart(2, '0');
             var day = String(dt.getDate()).padStart(2, '0');
-            return y + '-' + m + '-' + day;
+            return y + '-' + mo + '-' + day;
         }
 
         function e(s) {
@@ -1613,12 +2148,9 @@ ksort($factoryList);
                 .replace(/'/g, '&#039;');
         }
 
-        populateFactoryFilter(allRows);
-        applyFiltersAndRender();
-
+        /* ── Progress bar toggle ── */
         function applyProgressBarVisibility(hidden) {
             if (!progressSection || !toggleProgressBtn) return;
-
             progressSection.style.display = hidden ? 'none' : '';
             toggleProgressBtn.textContent = hidden ? 'Show Progress Bars' : 'Hide Progress Bars';
         }
@@ -1628,16 +2160,18 @@ ksort($factoryList);
             applyProgressBarVisibility(savedHidden);
 
             toggleProgressBtn.addEventListener('click', function() {
-                var isHidden = progressSection.style.display === 'none';
-                var nextHidden = !isHidden;
-
+                var nextHidden = progressSection.style.display !== 'none';
                 applyProgressBarVisibility(nextHidden);
                 localStorage.setItem('po_progress_bars_hidden', nextHidden ? '1' : '0');
             });
         }
 
+        populateFactoryFilter(allRows);
+        applyFiltersAndRender();
+
     })();
 
+    /* ── Date alert stats (global, used by both PHP-rendered and JS-rendered) ── */
     function calculateDateAlertStats(rows, fieldName) {
         var today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1657,29 +2191,17 @@ ksort($factoryList);
             if (!raw || raw === '0000-00-00') return;
 
             var status = String(row.po_status || '').toLowerCase();
-
-            // Do not count DONE items in schedule date bar
-            if (fieldName === 'delivery_schedule_date' && status === 'done') {
-                return;
-            }
+            if (fieldName === 'delivery_schedule_date' && status === 'done') return;
 
             var dt = new Date(raw);
             if (isNaN(dt.getTime())) return;
-
             dt.setHours(0, 0, 0, 0);
 
-            var diffMs = dt.getTime() - today.getTime();
-            var diffDays = Math.floor(diffMs / 86400000);
-
+            var diffDays = Math.floor((dt.getTime() - today.getTime()) / 86400000);
             stats.total++;
-
-            if (diffDays < 0) {
-                stats.reached++;
-            } else if (diffDays <= 3) {
-                stats.near++;
-            } else {
-                stats.safe++;
-            }
+            if (diffDays < 0) stats.reached++;
+            else if (diffDays <= 3) stats.near++;
+            else stats.safe++;
         });
 
         if (stats.total > 0) {
@@ -1702,10 +2224,7 @@ ksort($factoryList);
         if (nearEl) nearEl.style.width = stats.near_pct.toFixed(1) + '%';
         if (reachedEl) reachedEl.style.width = stats.reached_pct.toFixed(1) + '%';
 
-        if (metaEl) {
-            metaEl.textContent = stats.total + ' items with ' + labelText;
-        }
-
+        if (metaEl) metaEl.textContent = stats.total + ' items with ' + labelText;
         if (legendEl) {
             legendEl.innerHTML =
                 '<span class="legend-item"><span class="legend-dot legend-safe"></span> Safe: ' + stats.safe + '</span>' +
@@ -1713,6 +2232,169 @@ ksort($factoryList);
                 '<span class="legend-item"><span class="legend-dot legend-reached"></span> Reached: ' + stats.reached + '</span>';
         }
     }
+
+    /* ── Rejection reason popover ── */
+    var reasonPopover = document.getElementById('reject-reason-popover');
+    var reasonPopText = document.getElementById('reject-reason-popover-text');
+    var activeBadge = null;
+
+    window.showRejectReason = function(badgeEl, reason) {
+        if (activeBadge === badgeEl && reasonPopover.classList.contains('visible')) {
+            hideReasonPopover();
+            return;
+        }
+        activeBadge = badgeEl;
+        reasonPopText.textContent = reason || 'No reason provided';
+        reasonPopover.classList.add('visible');
+        positionPopover(badgeEl);
+    };
+
+    function positionPopover(anchor) {
+        var rect = anchor.getBoundingClientRect();
+        var popW = 280;
+        var left = rect.left;
+        if (left + popW > window.innerWidth - 12) left = window.innerWidth - popW - 12;
+        if (left < 8) left = 8;
+        reasonPopover.style.left = left + 'px';
+        reasonPopover.style.top = (rect.bottom + 10) + 'px';
+        var arrowLeft = Math.min(Math.max(rect.left + rect.width / 2 - left - 6, 10), popW - 22);
+        reasonPopover.style.setProperty('--arrow-left', arrowLeft + 'px');
+    }
+
+    function hideReasonPopover() {
+        reasonPopover.classList.remove('visible');
+        activeBadge = null;
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!reasonPopover.contains(e.target) && !e.target.closest('.status-rejected')) hideReasonPopover();
+    });
+    window.addEventListener('scroll', hideReasonPopover, true);
+    window.addEventListener('resize', function() {
+        if (activeBadge) positionPopover(activeBadge);
+    });
+
+    /* ── Rejection Modal ── */
+    var rejectOverlay = document.getElementById('reject-modal-overlay');
+    var rejectForm = document.getElementById('reject-modal-form');
+    var rejectPoIdIn = document.getElementById('reject-modal-po-id');
+    var rejectPoNumEl = document.getElementById('reject-modal-po-num');
+    var rejectTextarea = document.getElementById('reject-reason-textarea');
+    var rejectError = document.getElementById('reject-modal-error');
+    var rejectCancel = document.getElementById('reject-modal-cancel');
+
+    window.openRejectModal = function(poId, poNumber) {
+        rejectPoIdIn.value = poId;
+        rejectPoNumEl.textContent = 'PO #' + poNumber;
+        rejectTextarea.value = '';
+        rejectError.style.display = 'none';
+        rejectOverlay.classList.add('active');
+        setTimeout(function() {
+            rejectTextarea.focus();
+        }, 80);
+    };
+
+    function closeRejectModal() {
+        rejectOverlay.classList.remove('active');
+    }
+
+    if (rejectCancel) rejectCancel.addEventListener('click', closeRejectModal);
+    if (rejectOverlay) rejectOverlay.addEventListener('click', function(e) {
+        if (e.target === rejectOverlay) closeRejectModal();
+    });
+
+    if (rejectForm) {
+        rejectForm.addEventListener('submit', function(e) {
+            if (!rejectTextarea.value.trim()) {
+                e.preventDefault();
+                rejectError.style.display = 'block';
+                rejectTextarea.focus();
+            } else {
+                rejectError.style.display = 'none';
+            }
+        });
+    }
+
+    /* ── Reschedule Modal ── */
+    var rescheduleOverlay = document.getElementById('reschedule-modal-overlay');
+    var rescheduleForm = document.getElementById('reschedule-modal-form');
+    var reschedulePoIdIn = document.getElementById('reschedule-modal-po-id');
+    var reschedulePoNumEl = document.getElementById('reschedule-modal-po-num');
+    var rescheduleDateIn = document.getElementById('reschedule-date-input');
+    var rescheduleError = document.getElementById('reschedule-modal-error');
+    var rescheduleCancel = document.getElementById('reschedule-modal-cancel');
+
+    window.openRescheduleModal = function(poId, poNumber) {
+        reschedulePoIdIn.value = poId;
+        reschedulePoNumEl.textContent = 'PO #' + poNumber;
+        rescheduleDateIn.value = '';
+        rescheduleError.style.display = 'none';
+        rescheduleOverlay.classList.add('active');
+        setTimeout(function() {
+            rescheduleDateIn.focus();
+        }, 80);
+    };
+
+    function closeRescheduleModal() {
+        rescheduleOverlay.classList.remove('active');
+    }
+
+    if (rescheduleCancel) rescheduleCancel.addEventListener('click', closeRescheduleModal);
+    if (rescheduleOverlay) rescheduleOverlay.addEventListener('click', function(e) {
+        if (e.target === rescheduleOverlay) closeRescheduleModal();
+    });
+
+    if (rescheduleForm) {
+        rescheduleForm.addEventListener('submit', function(e) {
+            if (!rescheduleDateIn.value) {
+                e.preventDefault();
+                rescheduleError.style.display = 'block';
+                rescheduleDateIn.focus();
+            } else {
+                rescheduleError.style.display = 'none';
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (rejectOverlay && rejectOverlay.classList.contains('active')) closeRejectModal();
+            if (rescheduleOverlay && rescheduleOverlay.classList.contains('active')) closeRescheduleModal();
+        }
+    });
+
+    const tableDrag = document.getElementById('table-scroll-drag');
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    tableDrag.addEventListener('mousedown', function(e) {
+        isDown = true;
+        tableDrag.classList.add('dragging');
+        startX = e.pageX - tableDrag.offsetLeft;
+        scrollLeft = tableDrag.scrollLeft;
+    });
+
+    tableDrag.addEventListener('mouseleave', function() {
+        isDown = false;
+        tableDrag.classList.remove('dragging');
+    });
+
+    tableDrag.addEventListener('mouseup', function() {
+        isDown = false;
+        tableDrag.classList.remove('dragging');
+    });
+
+    tableDrag.addEventListener('mousemove', function(e) {
+        if (!isDown) return;
+        e.preventDefault();
+
+        const x = e.pageX - tableDrag.offsetLeft;
+        const walk = (x - startX) * 1.5;
+
+        tableDrag.scrollLeft = scrollLeft - walk;
+    });
 </script>
 
 <?php include 'partials/footer.php'; ?>

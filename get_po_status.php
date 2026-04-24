@@ -12,13 +12,20 @@ $sql = "SELECT po.*, u.name AS creator_name
 $result = $conn->query($sql);
 
 $rows = [];
+
 while ($row = $result->fetch_assoc()) {
     $st = strtolower($row['po_status'] ?? '');
 
+    $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+
     $row['can_mark_done'] = (
-        isset($_SESSION['role']) &&
-        $_SESSION['role'] === 'admin' &&
+        $isAdmin &&
         $st === 'delivery_date_scheduled'
+    );
+
+    $row['can_reschedule'] = (
+        $isAdmin &&
+        in_array($st, ['delivery_date_scheduled', 'rejected'])
     );
 
     $rows[] = [
@@ -31,9 +38,12 @@ while ($row = $result->fetch_assoc()) {
         'po_status'              => $row['po_status'] ?? '',
         'expected_delivery_date' => $row['expected_delivery_date'] ?? '',
         'delivery_schedule_date' => $row['delivery_schedule_date'] ?? '',
+        'reschedule_date'        => $row['reschedule_date'] ?? '',
+        'rejection_reason'       => $row['rejection_reason'] ?? '',
         'creator_name'           => $row['creator_name'] ?? '',
         'pdf_file_path'          => $row['pdf_file_path'] ?? '',
-        'can_mark_done'          => $row['can_mark_done']
+        'can_mark_done'          => $row['can_mark_done'],
+        'can_reschedule'         => $row['can_reschedule']
     ];
 }
 
@@ -41,7 +51,8 @@ $total      = count($rows);
 $done       = count(array_filter($rows, fn($r) => strtolower($r['po_status']) === 'done'));
 $scheduled  = count(array_filter($rows, fn($r) => strtolower($r['po_status']) === 'delivery_date_scheduled'));
 $needsSched = count(array_filter($rows, fn($r) => strtolower($r['po_status']) === 'sent_to_schedule_delivery'));
-$open       = $total - $done;
+$rejected   = count(array_filter($rows, fn($r) => strtolower($r['po_status']) === 'rejected'));
+$open       = $total - $done - $rejected;
 
 echo json_encode([
     'success' => true,
@@ -51,6 +62,8 @@ echo json_encode([
         'open'           => $open,
         'needs_schedule' => $needsSched,
         'scheduled'      => $scheduled,
-        'done'           => $done
+        'done'           => $done,
+        'rejected'       => $rejected
     ]
 ]);
+?>
