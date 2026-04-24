@@ -117,7 +117,7 @@ $openRate     = ($total > 0) ? round(($open     / $total) * 100, 1) : 0;
 
 .po-rate-fill-open {
     height: 100%;
-    background: #d0d7e2;
+    background: linear-gradient(90deg, #1e88e5 0%, #64b5f6 100%);
     transition: width 0.4s ease;
     width: <?= $openRate ?>%;
     flex-shrink: 0;
