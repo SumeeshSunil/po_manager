@@ -1,5 +1,7 @@
 <?php
 include 'config.php';
+include 'workflow_helper.php';
+
 checkLogin();
 checkRole(['admin']);
 
@@ -15,6 +17,11 @@ $pdf_file_path = null;
 
 if (isset($_FILES['po_pdf']) && $_FILES['po_pdf']['error'] == 0) {
     $uploadDir = "uploads/";
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
     $originalName = basename($_FILES['po_pdf']['name']);
     $fileExt = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
@@ -36,10 +43,31 @@ if (isset($_FILES['po_pdf']) && $_FILES['po_pdf']['error'] == 0) {
 $stmt = $conn->prepare("INSERT INTO purchase_orders 
     (po_number, release_date, expiry_date, platform, factory_name, pdf_file_name, pdf_file_path, created_by)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("sssssssi", $po_number, $release_date, $expiry_date, $platform, $factory_name, $pdf_file_name, $pdf_file_path, $created_by);
+
+$stmt->bind_param(
+    "sssssssi",
+    $po_number,
+    $release_date,
+    $expiry_date,
+    $platform,
+    $factory_name,
+    $pdf_file_name,
+    $pdf_file_path,
+    $created_by
+);
 
 if ($stmt->execute()) {
     $po_id = $conn->insert_id;
+
+    // ✅ Save PO created workflow history
+    savePoWorkflow(
+        $conn,
+        $po_id,
+        'created',
+        'created',
+        'Purchase Order created',
+        $created_by
+    );
 
     $item_codes = $_POST['item_code'];
     $item_descriptions = $_POST['item_description'];

@@ -140,35 +140,12 @@ $itemResult = $itemStmt->get_result();
     text-transform: capitalize;
   }
 
-  .status-pending {
-    background: #fff8e1;
-    color: #f59f00;
-  }
-
-  .status-in_progress {
-    background: #e3f2fd;
-    color: #1565c0;
-  }
-
-  .status-done {
-    background: #e8f5e9;
-    color: #2e7d32;
-  }
-
-  .status-sent_to_schedule_delivery {
-    background: #ede7f6;
-    color: #6a1b9a;
-  }
-
-  .status-delivery_date_scheduled {
-    background: #ede7f6;
-    color: #6a1b9a;
-  }
-
-  .status-rejected {
-    background: #fce4ec;
-    color: #b71c1c;
-  }
+  .status-pending { background: #fff8e1; color: #f59f00; }
+  .status-in_progress { background: #e3f2fd; color: #1565c0; }
+  .status-done { background: #e8f5e9; color: #2e7d32; }
+  .status-sent_to_schedule_delivery { background: #ede7f6; color: #6a1b9a; }
+  .status-delivery_date_scheduled { background: #ede7f6; color: #6a1b9a; }
+  .status-rejected { background: #fce4ec; color: #b71c1c; }
 
   .pdf-links {
     display: flex;
@@ -271,6 +248,21 @@ $itemResult = $itemStmt->get_result();
 
   .btn-primary:hover {
     background: #b71c1c;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #1a1a2e;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
   }
 
   .table-card {
@@ -407,6 +399,77 @@ $itemResult = $itemStmt->get_result();
     color: #aaa;
     font-size: 13px;
     font-style: italic;
+  }
+
+  .deliverable-input {
+    width: 110px;
+    padding: 8px 10px;
+    border: 1.5px solid #e0e3e8;
+    border-radius: 9px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    outline: none;
+  }
+
+  .deliverable-input:focus {
+    border-color: #c62828;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-box {
+    width: 900px;
+    max-width: 96%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  }
+
+  .modal-box h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+  }
+
+  .modal-box p {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 16px;
+  }
+
+  .reason-textarea {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1.5px solid #e0e3e8;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    resize: vertical;
+    outline: none;
+  }
+
+  .reason-textarea:focus {
+    border-color: #c62828;
+  }
+
+  .modal-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
   }
 </style>
 
@@ -565,8 +628,9 @@ $itemResult = $itemStmt->get_result();
   ): ?>
     <div class="form-card">
       <div class="form-card-title"><span class="section-dot"></span> Expected Delivery Date</div>
-      <form method="POST" action="save_item_action.php">
+      <form method="POST" action="save_item_action.php" id="itemActionForm">
         <input type="hidden" name="po_id" value="<?php echo $po_id; ?>">
+        <input type="hidden" name="short_reason_hidden" id="shortReasonHidden">
 
         <div class="form-group">
           <label>Expected Delivery Date for this PO</label>
@@ -584,14 +648,35 @@ $itemResult = $itemStmt->get_result();
                 <th>Item Code</th>
                 <th>Description</th>
                 <th>PO Qty</th>
+                <th>Deliverable Qty</th>
               </tr>
             </thead>
             <tbody>
               <?php while ($item = $itemResult->fetch_assoc()): ?>
+                <?php
+                  $poQty = (int)$item['qty'];
+                  $deliverableQty = isset($item['deliverable_qty']) && $item['deliverable_qty'] !== null && (int)$item['deliverable_qty'] > 0
+                    ? (int)$item['deliverable_qty']
+                    : $poQty;
+                ?>
                 <tr>
                   <td><span class="item-code-tag"><?php echo htmlspecialchars($item['item_code']); ?></span></td>
                   <td><?php echo htmlspecialchars($item['item_description']); ?></td>
                   <td><span class="qty-val"><?php echo htmlspecialchars($item['qty']); ?></span></td>
+                  <td>
+                    <input
+                      type="number"
+                      class="deliverable-input"
+                      name="deliverable_qty[<?php echo (int)$item['id']; ?>]"
+                      value="<?php echo htmlspecialchars($deliverableQty); ?>"
+                      min="0"
+                      max="<?php echo htmlspecialchars($poQty); ?>"
+                      data-qty="<?php echo htmlspecialchars($poQty); ?>"
+                      data-code="<?php echo htmlspecialchars($item['item_code']); ?>"
+                      data-desc="<?php echo htmlspecialchars($item['item_description']); ?>"
+                      required
+                    >
+                  </td>
                 </tr>
               <?php endwhile; ?>
             </tbody>
@@ -617,7 +702,11 @@ $itemResult = $itemStmt->get_result();
           <tr>
             <th>Item Code</th>
             <th>Description</th>
-            <th>Qty</th>
+            <th>PO Qty</th>
+            <th>Deliverable Qty</th>
+            <th>Short Qty</th>
+            <th>Status</th>
+            <th>Reason</th>
             <th>Updated By</th>
             <th>Updated At</th>
           </tr>
@@ -633,11 +722,20 @@ $itemResult = $itemStmt->get_result();
           $itemResult2 = $itemStmt2->get_result();
 
           while ($item = $itemResult2->fetch_assoc()):
+            $poQty = (int)$item['qty'];
+            $deliverableQty = isset($item['deliverable_qty']) && $item['deliverable_qty'] !== null
+              ? (int)$item['deliverable_qty']
+              : $poQty;
+            $shortQty = max($poQty - $deliverableQty, 0);
           ?>
             <tr>
               <td><span class="item-code-tag"><?php echo htmlspecialchars($item['item_code']); ?></span></td>
               <td><?php echo htmlspecialchars($item['item_description']); ?></td>
               <td><span class="qty-val"><?php echo htmlspecialchars($item['qty']); ?></span></td>
+              <td><span class="qty-val"><?php echo htmlspecialchars($deliverableQty); ?></span></td>
+              <td><span class="qty-val"><?php echo htmlspecialchars($shortQty); ?></span></td>
+              <td><?php echo htmlspecialchars($item['user_status'] ?? 'pending'); ?></td>
+              <td><?php echo htmlspecialchars($item['reason'] ?? '—'); ?></td>
               <td><span class="updated-by"><?php echo htmlspecialchars($item['updated_by_name'] ?? '—'); ?></span></td>
               <td><span class="updated-at"><?php echo htmlspecialchars($item['updated_at'] ?? '—'); ?></span></td>
             </tr>
@@ -648,5 +746,143 @@ $itemResult = $itemStmt->get_result();
   <?php endif; ?>
 
 </div>
+
+<div class="modal-overlay" id="shortModal">
+  <div class="modal-box">
+    <h3>Short Delivery Preview</h3>
+    <p>These items have deliverable quantity less than PO quantity. Please enter the reason.</p>
+
+    <table class="po-table">
+      <thead>
+        <tr>
+          <th>Item Code</th>
+          <th>Description</th>
+          <th>PO Qty</th>
+          <th>Deliverable Qty</th>
+          <th>Short Qty</th>
+        </tr>
+      </thead>
+      <tbody id="shortPreviewBody"></tbody>
+    </table>
+
+    <div class="form-group" style="margin-top:16px;">
+      <label>Reason</label>
+      <textarea id="shortReasonBox" class="reason-textarea" placeholder="Enter reason for short delivery"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeShortModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="confirmShortSubmit()">Confirm & Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let allowSubmit = false;
+const itemActionForm = document.getElementById("itemActionForm");
+
+if (itemActionForm) {
+  itemActionForm.addEventListener("submit", function(e) {
+    if (allowSubmit) {
+      return true;
+    }
+
+    const inputs = document.querySelectorAll(".deliverable-input");
+    const shortItems = [];
+    let hasError = false;
+
+    inputs.forEach(function(input) {
+      const poQty = parseInt(input.dataset.qty, 10);
+      const deliverableQty = parseInt(input.value, 10);
+
+      if (hasError) return;
+
+      if (isNaN(deliverableQty) || deliverableQty < 0) {
+        alert("Deliverable qty cannot be empty or negative.");
+        input.focus();
+        hasError = true;
+        return;
+      }
+
+      if (deliverableQty > poQty) {
+        alert("Deliverable qty cannot be greater than PO qty.");
+        input.focus();
+        hasError = true;
+        return;
+      }
+
+      if (deliverableQty < poQty) {
+        shortItems.push({
+          code: input.dataset.code,
+          desc: input.dataset.desc,
+          poQty: poQty,
+          deliverableQty: deliverableQty,
+          shortQty: poQty - deliverableQty
+        });
+      }
+    });
+
+    if (hasError) {
+      e.preventDefault();
+      return false;
+    }
+
+    if (shortItems.length > 0) {
+      e.preventDefault();
+      showShortModal(shortItems);
+      return false;
+    }
+  });
+}
+
+function showShortModal(items) {
+  const tbody = document.getElementById("shortPreviewBody");
+  tbody.innerHTML = "";
+
+  items.forEach(function(item) {
+    tbody.innerHTML += `
+      <tr>
+        <td><span class="item-code-tag">${escapeHtml(item.code)}</span></td>
+        <td>${escapeHtml(item.desc)}</td>
+        <td><span class="qty-val">${item.poQty}</span></td>
+        <td><span class="qty-val">${item.deliverableQty}</span></td>
+        <td><span class="qty-val">${item.shortQty}</span></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("shortModal").style.display = "flex";
+}
+
+function closeShortModal() {
+  document.getElementById("shortModal").style.display = "none";
+}
+
+function confirmShortSubmit() {
+  const reason = document.getElementById("shortReasonBox").value.trim();
+
+  if (reason === "") {
+    alert("Please enter reason.");
+    document.getElementById("shortReasonBox").focus();
+    return;
+  }
+
+  document.getElementById("shortReasonHidden").value = reason;
+  allowSubmit = true;
+  itemActionForm.submit();
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, function(m) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    })[m];
+  });
+}
+</script>
 
 <?php include 'partials/footer.php'; ?>

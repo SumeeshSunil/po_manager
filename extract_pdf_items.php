@@ -54,7 +54,7 @@ $platform = isset($_POST['platform']) ? trim($_POST['platform']) : '';
 const PLATFORM_SCRIPTS = [
     'instamart' => 'extract_po_items_instamart.py',           // original Instamart extractor
     'blinkit'   => 'extract_po_items_blinkit.py', // Moonstone/Blinkit PO format
-    'zepto'     => 'extract_po_items.py', // update when you have a Zepto sample
+    'zepto'     => 'extract_po_items_zepto.py', // update when you have a Zepto sample
     'flipkart'  => 'extract_po_items.py', // update when you have a Flipkart sample
 ];
 
