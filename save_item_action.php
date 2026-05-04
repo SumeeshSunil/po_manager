@@ -8,7 +8,7 @@ checkRole(['user']);
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Invalid request.");
 }
-//142
+
 $po_id = isset($_POST['po_id']) ? (int)$_POST['po_id'] : 0;
 $expected_delivery_date = trim($_POST['expected_delivery_date'] ?? '');
 $deliverable_qtys = $_POST['deliverable_qty'] ?? [];
