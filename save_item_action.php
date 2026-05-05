@@ -3,7 +3,7 @@ include 'config.php';
 include 'workflow_helper.php';
 
 checkLogin();
-checkRole(['user']);
+checkRole(['user', 'admin']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Invalid request.");

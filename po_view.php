@@ -140,12 +140,35 @@ $itemResult = $itemStmt->get_result();
     text-transform: capitalize;
   }
 
-  .status-pending { background: #fff8e1; color: #f59f00; }
-  .status-in_progress { background: #e3f2fd; color: #1565c0; }
-  .status-done { background: #e8f5e9; color: #2e7d32; }
-  .status-sent_to_schedule_delivery { background: #ede7f6; color: #6a1b9a; }
-  .status-delivery_date_scheduled { background: #ede7f6; color: #6a1b9a; }
-  .status-rejected { background: #fce4ec; color: #b71c1c; }
+  .status-pending {
+    background: #fff8e1;
+    color: #f59f00;
+  }
+
+  .status-in_progress {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .status-done {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .status-sent_to_schedule_delivery {
+    background: #ede7f6;
+    color: #6a1b9a;
+  }
+
+  .status-delivery_date_scheduled {
+    background: #ede7f6;
+    color: #6a1b9a;
+  }
+
+  .status-rejected {
+    background: #fce4ec;
+    color: #b71c1c;
+  }
 
   .pdf-links {
     display: flex;
@@ -419,7 +442,7 @@ $itemResult = $itemStmt->get_result();
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 9999;
     align-items: center;
     justify-content: center;
@@ -434,7 +457,7 @@ $itemResult = $itemStmt->get_result();
     background: #fff;
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
   }
 
   .modal-box h3 {
@@ -513,6 +536,11 @@ $itemResult = $itemStmt->get_result();
       <div class="info-item">
         <div class="info-label">Release Date</div>
         <div class="info-value"><?php echo htmlspecialchars($po['release_date']); ?></div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">Buyer Expected Date</div>
+        <div class="info-value"><?php echo htmlspecialchars($po['buyer_expected_date']); ?></div>
       </div>
 
       <div class="info-item">
@@ -621,7 +649,7 @@ $itemResult = $itemStmt->get_result();
   <?php endif; ?>
 
   <?php if (
-    $_SESSION['role'] == 'user' &&
+    ($_SESSION['role'] == 'user' || $_SESSION['role'] == 'admin') &&
     $po['po_status'] != 'sent_to_schedule_delivery' &&
     $po['po_status'] != 'done' &&
     empty($po['delivery_schedule_date'])
@@ -654,10 +682,10 @@ $itemResult = $itemStmt->get_result();
             <tbody>
               <?php while ($item = $itemResult->fetch_assoc()): ?>
                 <?php
-                  $poQty = (int)$item['qty'];
-                  $deliverableQty = isset($item['deliverable_qty']) && $item['deliverable_qty'] !== null && (int)$item['deliverable_qty'] > 0
-                    ? (int)$item['deliverable_qty']
-                    : $poQty;
+                $poQty = (int)$item['qty'];
+                $deliverableQty = isset($item['deliverable_qty']) && $item['deliverable_qty'] !== null && (int)$item['deliverable_qty'] > 0
+                  ? (int)$item['deliverable_qty']
+                  : $poQty;
                 ?>
                 <tr>
                   <td><span class="item-code-tag"><?php echo htmlspecialchars($item['item_code']); ?></span></td>
@@ -674,8 +702,7 @@ $itemResult = $itemStmt->get_result();
                       data-qty="<?php echo htmlspecialchars($poQty); ?>"
                       data-code="<?php echo htmlspecialchars($item['item_code']); ?>"
                       data-desc="<?php echo htmlspecialchars($item['item_description']); ?>"
-                      required
-                    >
+                      required>
                   </td>
                 </tr>
               <?php endwhile; ?>
@@ -778,69 +805,69 @@ $itemResult = $itemStmt->get_result();
 </div>
 
 <script>
-let allowSubmit = false;
-const itemActionForm = document.getElementById("itemActionForm");
+  let allowSubmit = false;
+  const itemActionForm = document.getElementById("itemActionForm");
 
-if (itemActionForm) {
-  itemActionForm.addEventListener("submit", function(e) {
-    if (allowSubmit) {
-      return true;
-    }
-
-    const inputs = document.querySelectorAll(".deliverable-input");
-    const shortItems = [];
-    let hasError = false;
-
-    inputs.forEach(function(input) {
-      const poQty = parseInt(input.dataset.qty, 10);
-      const deliverableQty = parseInt(input.value, 10);
-
-      if (hasError) return;
-
-      if (isNaN(deliverableQty) || deliverableQty < 0) {
-        alert("Deliverable qty cannot be empty or negative.");
-        input.focus();
-        hasError = true;
-        return;
+  if (itemActionForm) {
+    itemActionForm.addEventListener("submit", function(e) {
+      if (allowSubmit) {
+        return true;
       }
 
-      if (deliverableQty > poQty) {
-        alert("Deliverable qty cannot be greater than PO qty.");
-        input.focus();
-        hasError = true;
-        return;
+      const inputs = document.querySelectorAll(".deliverable-input");
+      const shortItems = [];
+      let hasError = false;
+
+      inputs.forEach(function(input) {
+        const poQty = parseInt(input.dataset.qty, 10);
+        const deliverableQty = parseInt(input.value, 10);
+
+        if (hasError) return;
+
+        if (isNaN(deliverableQty) || deliverableQty < 0) {
+          alert("Deliverable qty cannot be empty or negative.");
+          input.focus();
+          hasError = true;
+          return;
+        }
+
+        if (deliverableQty > poQty) {
+          alert("Deliverable qty cannot be greater than PO qty.");
+          input.focus();
+          hasError = true;
+          return;
+        }
+
+        if (deliverableQty < poQty) {
+          shortItems.push({
+            code: input.dataset.code,
+            desc: input.dataset.desc,
+            poQty: poQty,
+            deliverableQty: deliverableQty,
+            shortQty: poQty - deliverableQty
+          });
+        }
+      });
+
+      if (hasError) {
+        e.preventDefault();
+        return false;
       }
 
-      if (deliverableQty < poQty) {
-        shortItems.push({
-          code: input.dataset.code,
-          desc: input.dataset.desc,
-          poQty: poQty,
-          deliverableQty: deliverableQty,
-          shortQty: poQty - deliverableQty
-        });
+      if (shortItems.length > 0) {
+        e.preventDefault();
+        showShortModal(shortItems);
+        return false;
       }
     });
+  }
 
-    if (hasError) {
-      e.preventDefault();
-      return false;
-    }
+  function showShortModal(items) {
+    const tbody = document.getElementById("shortPreviewBody");
+    tbody.innerHTML = "";
 
-    if (shortItems.length > 0) {
-      e.preventDefault();
-      showShortModal(shortItems);
-      return false;
-    }
-  });
-}
-
-function showShortModal(items) {
-  const tbody = document.getElementById("shortPreviewBody");
-  tbody.innerHTML = "";
-
-  items.forEach(function(item) {
-    tbody.innerHTML += `
+    items.forEach(function(item) {
+      tbody.innerHTML += `
       <tr>
         <td><span class="item-code-tag">${escapeHtml(item.code)}</span></td>
         <td>${escapeHtml(item.desc)}</td>
@@ -849,40 +876,40 @@ function showShortModal(items) {
         <td><span class="qty-val">${item.shortQty}</span></td>
       </tr>
     `;
-  });
+    });
 
-  document.getElementById("shortModal").style.display = "flex";
-}
-
-function closeShortModal() {
-  document.getElementById("shortModal").style.display = "none";
-}
-
-function confirmShortSubmit() {
-  const reason = document.getElementById("shortReasonBox").value.trim();
-
-  if (reason === "") {
-    alert("Please enter reason.");
-    document.getElementById("shortReasonBox").focus();
-    return;
+    document.getElementById("shortModal").style.display = "flex";
   }
 
-  document.getElementById("shortReasonHidden").value = reason;
-  allowSubmit = true;
-  itemActionForm.submit();
-}
+  function closeShortModal() {
+    document.getElementById("shortModal").style.display = "none";
+  }
 
-function escapeHtml(text) {
-  return String(text).replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    })[m];
-  });
-}
+  function confirmShortSubmit() {
+    const reason = document.getElementById("shortReasonBox").value.trim();
+
+    if (reason === "") {
+      alert("Please enter reason.");
+      document.getElementById("shortReasonBox").focus();
+      return;
+    }
+
+    document.getElementById("shortReasonHidden").value = reason;
+    allowSubmit = true;
+    itemActionForm.submit();
+  }
+
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, function(m) {
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[m];
+    });
+  }
 </script>
 
 <?php include 'partials/footer.php'; ?>

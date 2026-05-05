@@ -12,6 +12,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+
 (function () {
   'use strict';
 
@@ -30,8 +31,8 @@
     try {
       new Notification(title, {
         body: body,
-        icon: icon || '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: icon || './assets/images/favicon.svg',
+        badge: './assets/images/favicon.svg',
         tag: 'po-system',          // replaces previous so they don't stack
         renotify: true,
       });
