@@ -1,16 +1,16 @@
 """
-Purchase Order Extractor — Moonstone Format
+Purchase Order Extractor — Moonstone / Blinkit Format
 Columns: # | Item Code | HSN Code | Product UPC | Product Description |
          Basic Cost Price | CGST% | SGST% | CESS% | ADDT.CESS |
          Tax Amt | Landing Rate | Qty. | MRP | Margin% | Total Amt
 
 Header fields extracted from page text:
-  P.O. Number, Date (po_date), PO delivery date (release_date),
+  P.O. Number, Date (po_date + release_date), PO delivery date (buyer_expected_date),
   PO expiry date (expiry_date), Vendor name (factory_name)
 
 Usage:
-    python extract_po_items_moonstone.py <pdf_path>          # pretty output
-    python extract_po_items_moonstone.py <pdf_path> --json   # JSON for PHP
+    python extract_po_items_blinkit.py <pdf_path>          # pretty output
+    python extract_po_items_blinkit.py <pdf_path> --json   # JSON for PHP
 """
 
 import sys
@@ -74,11 +74,12 @@ def _first(pattern, text, group=1, flags=re.IGNORECASE):
 
 def extract_header(text):
     h = {
-        "po_number":    "",
-        "po_date":      "",
-        "release_date": "",   # PO delivery date
-        "expiry_date":  "",   # PO expiry date
-        "factory_name": "",
+        "po_number":           "",
+        "po_date":             "",
+        "release_date":        "",   # PO issue date  ("Date :" field)
+        "expiry_date":         "",   # PO expiry date
+        "factory_name":        "",
+        "buyer_expected_date": "",   # PO delivery date ("PO delivery date :" field)
     }
 
     # P.O. Number
@@ -86,16 +87,18 @@ def extract_header(text):
     if not h["po_number"]:
         h["po_number"] = _first(r'PO\s*No\.?\s*[:\-]?\s*([A-Z0-9\-]+)', text)
 
-    # PO Date  (labelled "Date :")
-    raw = _first(r'\bDate\s*:(' + _DATE_FULL + r')', text)
-    h["po_date"] = parse_date(raw)
+    # Release date = the main PO issue date (labelled "Date :")
+    # e.g. "Date :April 23, 2026, 12:29 p.m."
+    raw = _first(r'\bDate\s*[:\-]\s*(' + _DATE_FULL + r')', text)
+    h["release_date"] = parse_date(raw)
+    h["po_date"]      = h["release_date"]   # keep po_date in sync
 
-    # PO delivery date  → mapped to release_date in the form
-    # The label may be split across lines: "PO delivery :April 25..." / "date"
+    # Buyer expected date = PO delivery date (labelled "PO delivery date :")
+    # e.g. "PO delivery date :April 25, 2026, 11:59 p.m."
     raw = _first(r'PO\s+delivery\s*(?:date)?\s*[:\-]\s*(' + _DATE_FULL + r')', text)
     if not raw:
         raw = _first(r'Delivery\s+[Dd]ate\s*[:\-]?\s*(' + _DATE_FULL + r')', text)
-    h["release_date"] = parse_date(raw)
+    h["buyer_expected_date"] = parse_date(raw)
 
     # PO expiry date
     raw = _first(r'PO\s+expiry\s+date\s*[:\-]?\s*(' + _DATE_FULL + r')', text)
@@ -104,9 +107,6 @@ def extract_header(text):
     h["expiry_date"] = parse_date(raw)
 
     # Vendor / factory name
-    # The PDF has "Vendor :SOUTHSHORE ICECREAMS PVT LTD" on the same line as
-    # "P.O. Number :..." so we grab everything after "Vendor :" up to whitespace
-    # run / PAN / end of token.
     raw = _first(r'Vendor\s*[:\-]\s*([A-Z][A-Z0-9 &()\.\,]+?)(?:\s+PAN|\s+P\.O\.|\n|$)', text)
     if raw and len(raw) > 3:
         h["factory_name"] = raw.strip()
@@ -121,7 +121,6 @@ def extract_header(text):
                 if after and len(after) > 3:
                     h["factory_name"] = after
                     break
-                # Try next lines
                 for j in range(i + 1, min(i + 4, len(lines))):
                     candidate = lines[j].strip()
                     candidate = re.sub(r'\s*(PAN|P\.O\.).*', '', candidate, flags=re.IGNORECASE).strip()
@@ -143,7 +142,7 @@ def extract_header(text):
 
 COL_ITEM_CODE = 1
 COL_ITEM_DESC = 4
-COL_QTY       = 12   # <-- KEY DIFFERENCE vs Instamart
+COL_QTY       = 12
 
 
 def _is_header_row(row):
@@ -158,7 +157,7 @@ def _is_header_row(row):
 def extract_items(pdf_path):
     header = {}
     items  = []
-    in_items = False   # True after we've seen the column-header row
+    in_items = False
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, 1):
@@ -176,10 +175,9 @@ def extract_items(pdf_path):
                     if row is None:
                         continue
 
-                    # Detect the column-header row
                     if _is_header_row(row):
                         in_items = True
-                        continue   # skip the header row itself
+                        continue
 
                     if not in_items:
                         continue
@@ -187,7 +185,6 @@ def extract_items(pdf_path):
                     cells = [clean(c) for c in row]
                     joined_lower = ' '.join(cells).lower()
 
-                    # Stop at footer rows
                     if any(kw in joined_lower for kw in
                            ['total quantity', 'total items', 'total amount',
                             'net amount', 'cart discount', 'terms', 'grand total',
@@ -195,24 +192,19 @@ def extract_items(pdf_path):
                         in_items = False
                         break
 
-                    # Skip blank rows
                     if all(c == '' for c in cells):
                         continue
 
-                    # Row must start with a serial number
                     if not re.match(r'^\d+$', cells[0]):
                         continue
 
-                    # Safely get columns (handle short rows)
                     def get(idx):
                         return cells[idx] if idx < len(cells) else ''
 
-                    # Item codes can be split across lines e.g. "101691\n87" → "10169187"
                     item_code = re.sub(r'\s+', '', get(COL_ITEM_CODE))
                     item_desc = get(COL_ITEM_DESC)
                     qty       = get(COL_QTY)
 
-                    # Clean up description: remove trailing size/colour notes
                     item_desc = re.sub(r'(Colour|Color|Size|Brand)\s*:.*', '',
                                        item_desc, flags=re.IGNORECASE).strip()
                     item_desc = re.sub(r'\s+', ' ', item_desc).strip()
@@ -232,14 +224,14 @@ def extract_items(pdf_path):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    args     = sys.argv[1:]
+    args      = sys.argv[1:]
     json_mode = '--json' in args
-    args     = [a for a in args if a != '--json']
+    args      = [a for a in args if a != '--json']
 
     pdf_path = args[0] if args else ""
 
     if not pdf_path:
-        print("Usage: python extract_po_items_moonstone.py <pdf_path> [--json]",
+        print("Usage: python extract_po_items_blinkit.py <pdf_path> [--json]",
               file=sys.stderr)
         sys.exit(1)
 
@@ -255,13 +247,13 @@ if __name__ == "__main__":
 
         print("=== HEADER ===")
         for k, v in h.items():
-            print(f"  {k:15}: {v}")
+            print(f"  {k:20}: {v}")
 
         print("\n=== ITEMS ===")
         if items:
-            w_code = max(len('Item Code'),        max(len(i['item_code']) for i in items))
-            w_desc = max(len('Description'),      max(len(i['item_desc']) for i in items))
-            w_qty  = max(len('Qty'),              max(len(i['qty'])       for i in items))
+            w_code = max(len('Item Code'),   max(len(i['item_code']) for i in items))
+            w_desc = max(len('Description'), max(len(i['item_desc']) for i in items))
+            w_qty  = max(len('Qty'),         max(len(i['qty'])       for i in items))
             sep    = f"+{'-'*(w_code+2)}+{'-'*(w_desc+2)}+{'-'*(w_qty+2)}+"
             print(sep)
             print(f"| {'Item Code':<{w_code}} | {'Description':<{w_desc}} | {'Qty':<{w_qty}} |")

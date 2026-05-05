@@ -272,6 +272,7 @@
 
                     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super'): ?>
                         <a href="create_user.php">Create User</a>
+                        <a href="users_list.php">View Users</a>
                     <?php endif; ?>
 
                     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>

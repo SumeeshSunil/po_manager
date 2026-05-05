@@ -606,7 +606,11 @@ checkRole(['admin']);
             <input type="date" name="expiry_date" id="expiry_date" required>
           </div>
         </div>
-        <div class="form-grid single">
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="field-group">
+            <label>Buyer Expected Date </label>
+            <input type="date" name="buyer_expected_date" id="buyer_expected_date">
+          </div>
           <div class="field-group">
             <label>Factory / Vendor Name</label>
             <input type="text" name="factory_name" id="factory_name" placeholder="e.g. SIMFRA FROZEN FOODS PVT LTD" required>
@@ -869,14 +873,15 @@ checkRole(['admin']);
 
   function fillHeader(h) {
     if (!h) return;
-    if (h.po_number) setVal('po_number', h.po_number);
-    if (h.release_date) setVal('release_date', h.release_date);
-    if (h.expiry_date) setVal('expiry_date', h.expiry_date);
-    if (h.factory_name) setVal('factory_name', h.factory_name);
+    if (h.po_number)           setVal('po_number',           h.po_number);
+    if (h.release_date)        setVal('release_date',        h.release_date);
+    if (h.expiry_date)         setVal('expiry_date',         h.expiry_date);
+    if (h.factory_name)        setVal('factory_name',        h.factory_name);
+    if (h.buyer_expected_date) setVal('buyer_expected_date', h.buyer_expected_date);
   }
 
   function clearHeader() {
-    ['po_number', 'release_date', 'expiry_date', 'factory_name'].forEach(id => setVal(id, ''));
+    ['po_number', 'release_date', 'expiry_date', 'factory_name', 'buyer_expected_date'].forEach(id => setVal(id, ''));
   }
 
   function setVal(id, val) {

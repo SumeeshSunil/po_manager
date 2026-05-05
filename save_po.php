@@ -5,12 +5,13 @@ include 'workflow_helper.php';
 checkLogin();
 checkRole(['admin']);
 
-$po_number = trim($_POST['po_number']);
-$release_date = $_POST['release_date'];
-$expiry_date = $_POST['expiry_date'];
-$platform = trim($_POST['platform']);
-$factory_name = trim($_POST['factory_name']);
-$created_by = $_SESSION['user_id'];
+$po_number          = trim($_POST['po_number']);
+$release_date       = $_POST['release_date'];
+$expiry_date        = $_POST['expiry_date'];
+$platform           = trim($_POST['platform']);
+$factory_name       = trim($_POST['factory_name']);
+$buyer_expected_date = !empty($_POST['buyer_expected_date']) ? $_POST['buyer_expected_date'] : null;
+$created_by         = $_SESSION['user_id'];
 
 $pdf_file_name = null;
 $pdf_file_path = null;
@@ -41,16 +42,17 @@ if (isset($_FILES['po_pdf']) && $_FILES['po_pdf']['error'] == 0) {
 }
 
 $stmt = $conn->prepare("INSERT INTO purchase_orders 
-    (po_number, release_date, expiry_date, platform, factory_name, pdf_file_name, pdf_file_path, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    (po_number, release_date, expiry_date, platform, factory_name, buyer_expected_date, pdf_file_name, pdf_file_path, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 $stmt->bind_param(
-    "sssssssi",
+    "ssssssssi",
     $po_number,
     $release_date,
     $expiry_date,
     $platform,
     $factory_name,
+    $buyer_expected_date,
     $pdf_file_name,
     $pdf_file_path,
     $created_by

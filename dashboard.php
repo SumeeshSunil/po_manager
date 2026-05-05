@@ -1366,6 +1366,7 @@ ksort($factoryList);
                         <th>Factory</th>
                         <th>Release Date</th>
                         <th>Expiry Date</th>
+                        <th>Buyer Expected Date</th>
                         <th>Status</th>
                         <th>Expected Delivery</th>
                         <th>Schedule Date</th>
@@ -1377,7 +1378,7 @@ ksort($factoryList);
                 <tbody id="po-tbody">
                     <?php if (empty($rows)): ?>
                         <tr id="empty-row">
-                            <td colspan="12">
+                            <td colspan="13">
                                 <div class="empty-state">
                                     <svg viewBox="0 0 24 24">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -1416,6 +1417,7 @@ ksort($factoryList);
                             $showExp = !empty($row['expected_delivery_date']);
                             $showSch = !empty($row['delivery_schedule_date']);
                             $showReschedule = !empty($row['reschedule_date']);
+                            $showBuyerExp = !empty($row['buyer_expected_date']);
                         ?>
                             <tr data-po-id="<?= (int)$row['id'] ?>" data-po-status="<?= htmlspecialchars($row['po_status'] ?? '') ?>">
                                 <td style="color:#bbb;font-size:12px;font-family:'DM Mono',monospace"><?= $row['id'] ?></td>
@@ -1426,6 +1428,17 @@ ksort($factoryList);
                                 </td>
                                 <td style="font-size:12px;color:#666"><?= !empty($row['release_date']) ? date('d-m-Y', strtotime($row['release_date'])) : '—' ?></td>
                                 <td style="font-size:12px;color:#666"><?= !empty($row['expiry_date']) ? date('d-m-Y', strtotime($row['expiry_date'])) : '—' ?></td>
+
+                                <td>
+                                    <?php if ($showBuyerExp): ?>
+                                        <span class="schedule-pill" style="background:#e3f2fd;color:#1565c0;">
+                                            <svg viewBox="0 0 24 24" style="stroke:#1565c0">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <?= date('d-m-Y', strtotime($row['buyer_expected_date'])) ?>
+                                        </span>
+                                    <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
+                                </td>
 
                                 <td>
                                     <?php if ($st === 'rejected'): ?>
@@ -1845,7 +1858,7 @@ ksort($factoryList);
             var tbody = document.getElementById('po-tbody');
             if (!rows.length) {
                 tbody.innerHTML =
-                    '<tr id="empty-row"><td colspan="12">' +
+                    '<tr id="empty-row"><td colspan="13">' +
                     '<div class="empty-state">' +
                     '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
                     '<div>No purchase orders found for selected filters</div>' +
@@ -1982,6 +1995,7 @@ ksort($factoryList);
             var showExp = !!row.expected_delivery_date;
             var showSch = !!row.delivery_schedule_date;
             var showReschedule = !!row.reschedule_date;
+            var showBuyerExp = !!row.buyer_expected_date;
 
             var canDone = IS_ADMIN && st === 'delivery_date_scheduled';
             var canReschedule = IS_ADMIN && ['delivery_date_scheduled', 'rejected'].includes(st);
@@ -2013,6 +2027,16 @@ ksort($factoryList);
                     '<span class="schedule-pill" style="background:#e8eaf6;color:#283593;">' +
                     '<svg viewBox="0 0 24 24" style="stroke:#283593"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
                     e(fmtDate(row.reschedule_date)) +
+                    '</span>';
+            }
+
+            /* Buyer expected date */
+            var buyerExpHtml = '<span style="color:#ccc;font-size:12px">—</span>';
+            if (showBuyerExp) {
+                buyerExpHtml =
+                    '<span class="schedule-pill" style="background:#e3f2fd;color:#1565c0;">' +
+                    '<svg viewBox="0 0 24 24" style="stroke:#1565c0"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                    e(fmtDate(row.buyer_expected_date)) +
                     '</span>';
             }
 
@@ -2071,6 +2095,7 @@ ksort($factoryList);
                 '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + e(row.factory_name || '') + '">' + e(row.factory_name || '—') + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(fmtDate(row.release_date)) + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(fmtDate(row.expiry_date)) + '</td>' +
+                '<td>' + buyerExpHtml + '</td>' +
                 '<td>' + statusHtml + '</td>' +
                 '<td>' + expectedHtml + '</td>' +
                 '<td>' + scheduleHtml + '</td>' +

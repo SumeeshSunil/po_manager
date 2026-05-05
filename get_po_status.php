@@ -30,20 +30,21 @@ while ($row = $result->fetch_assoc()) {
 
     $rows[] = [
         'id'                     => (int)$row['id'],
-        'po_number'              => $row['po_number'] ?? '',
-        'platform'               => $row['platform'] ?? '',
-        'factory_name'           => $row['factory_name'] ?? '',
-        'release_date'           => $row['release_date'] ?? '',
-        'expiry_date'            => $row['expiry_date'] ?? '',
-        'po_status'              => $row['po_status'] ?? '',
+        'po_number'              => $row['po_number']              ?? '',
+        'platform'               => $row['platform']               ?? '',
+        'factory_name'           => $row['factory_name']           ?? '',
+        'release_date'           => $row['release_date']           ?? '',
+        'expiry_date'            => $row['expiry_date']            ?? '',
+        'buyer_expected_date'    => $row['buyer_expected_date']    ?? '',  // ← was missing
+        'po_status'              => $row['po_status']              ?? '',
         'expected_delivery_date' => $row['expected_delivery_date'] ?? '',
         'delivery_schedule_date' => $row['delivery_schedule_date'] ?? '',
-        'reschedule_date'        => $row['reschedule_date'] ?? '',
-        'rejection_reason'       => $row['rejection_reason'] ?? '',
-        'creator_name'           => $row['creator_name'] ?? '',
-        'pdf_file_path'          => $row['pdf_file_path'] ?? '',
+        'reschedule_date'        => $row['reschedule_date']        ?? '',
+        'rejection_reason'       => $row['rejection_reason']       ?? '',
+        'creator_name'           => $row['creator_name']           ?? '',
+        'pdf_file_path'          => $row['pdf_file_path']          ?? '',
         'can_mark_done'          => $row['can_mark_done'],
-        'can_reschedule'         => $row['can_reschedule']
+        'can_reschedule'         => $row['can_reschedule'],
     ];
 }
 
@@ -63,7 +64,7 @@ echo json_encode([
         'needs_schedule' => $needsSched,
         'scheduled'      => $scheduled,
         'done'           => $done,
-        'rejected'       => $rejected
+        'rejected'       => $rejected,
     ]
 ]);
 ?>
