@@ -24,6 +24,21 @@ foreach ($rows as $r) {
     if ($factory !== '') $factoryList[$factory] = $factory;
 }
 ksort($factoryList);
+
+// ── Factory list for company selector ──────────────────────────────────────
+$factorySelectionList = [];
+foreach ($rows as $r) {
+    $factory = trim($r['factory_name'] ?? '');
+    if ($factory !== '') $factorySelectionList[$factory] = $factory;
+}
+ksort($factorySelectionList);
+
+// Current user info
+$currentUserId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? 0;
+$isAdmin       = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+
+// Load saved factory from session (written by save_user_company.php)
+$sessionCompany = $_SESSION['user_company'] ?? '';
 ?>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
@@ -324,6 +339,21 @@ ksort($factoryList);
         border-radius: 8px;
         padding: 6px 12px;
         min-height: 40px;
+    }
+
+    /* ── LOCKED state for filter boxes ── */
+    .filter-box.is-locked {
+        background: #f5f5f5;
+        border-color: #d0d0d0;
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .filter-box.is-locked select,
+    .filter-box.is-locked input {
+        pointer-events: none;
+        cursor: not-allowed;
+        color: #999;
     }
 
     .search-box svg,
@@ -1057,114 +1087,46 @@ ksort($factoryList);
     }
 
     @keyframes dotPulse {
-
-        0%,
-        100% {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        50% {
-            opacity: .35;
-            transform: scale(.65);
-        }
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: .35; transform: scale(.65); }
     }
 
     @keyframes pillFlash {
-        0% {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-color: #a5d6a7;
-        }
-
-        100% {
-            background: #f0f2f5;
-            color: #555;
-            border-color: #e0e3e8;
-        }
+        0%   { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+        100% { background: #f0f2f5; color: #555;    border-color: #e0e3e8; }
     }
 
     @keyframes rowHighlight {
-        0% {
-            background: #fffde7;
-        }
-
-        80% {
-            background: #fffde7;
-        }
-
-        100% {
-            background: transparent;
-        }
+        0%   { background: #fffde7; }
+        80%  { background: #fffde7; }
+        100% { background: transparent; }
     }
 
     @keyframes rowNew {
-        0% {
-            background: #e8f5e9;
-            opacity: 0;
-            transform: translateY(-6px);
-        }
-
-        20% {
-            opacity: 1;
-            transform: translateY(0);
-            background: #e8f5e9;
-        }
-
-        80% {
-            background: #e8f5e9;
-        }
-
-        100% {
-            background: transparent;
-        }
+        0%   { background: #e8f5e9; opacity: 0; transform: translateY(-6px); }
+        20%  { opacity: 1; transform: translateY(0); background: #e8f5e9; }
+        80%  { background: #e8f5e9; }
+        100% { background: transparent; }
     }
 
     @keyframes statBump {
-        0% {
-            transform: scale(1.3);
-        }
-
-        100% {
-            transform: scale(1);
-        }
+        0%   { transform: scale(1.3); }
+        100% { transform: scale(1); }
     }
 
-    .row-changed {
-        animation: rowHighlight 2.5s ease forwards;
-    }
-
-    .row-new {
-        animation: rowNew 2.5s ease forwards;
-    }
-
-    .stat-bump {
-        animation: statBump 0.35s ease both;
-    }
+    .row-changed { animation: rowHighlight 2.5s ease forwards; }
+    .row-new     { animation: rowNew 2.5s ease forwards; }
+    .stat-bump   { animation: statBump 0.35s ease both; }
 
     @media (max-width: 768px) {
-
         .table-card-header-right,
-        .filters-wrap {
-            width: 100%;
-        }
-
+        .filters-wrap { width: 100%; }
         .search-box,
-        .filter-box {
-            width: 100%;
-        }
-
+        .filter-box   { width: 100%; }
         .search-box input,
         .filter-box select,
-        .filter-box input[type="date"] {
-            width: 100%;
-            min-width: 0;
-        }
-
-        .clear-filters-btn {
-            width: 100%;
-            justify-content: center;
-        }
+        .filter-box input[type="date"] { width: 100%; min-width: 0; }
+        .clear-filters-btn { width: 100%; justify-content: center; }
     }
 
     .progress-toggle-wrap {
@@ -1189,17 +1151,191 @@ ksort($factoryList);
         transition: background 0.2s ease;
     }
 
-    .progress-toggle-btn:hover {
-        background: #2d2d4e;
+    .progress-toggle-btn:hover { background: #2d2d4e; }
+
+    .table-scroll-drag          { cursor: grab; user-select: none; }
+    .table-scroll-drag.dragging { cursor: grabbing; }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       Company Selection Modal
+       ══════════════════════════════════════════════════════════════════════ */
+    .company-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 15, 30, 0.78);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
     }
 
-    .table-scroll-drag {
-        cursor: grab;
+    .company-modal-overlay.active { display: flex; }
+
+    .company-modal {
+        background: #fff;
+        border-radius: 22px;
+        padding: 40px 32px 30px;
+        width: 100%;
+        max-width: 460px;
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
+        font-family: 'DM Sans', sans-serif;
+        animation: companyModalIn 0.3s cubic-bezier(.34, 1.56, .64, 1) both;
+    }
+
+    @keyframes companyModalIn {
+        from { opacity: 0; transform: scale(0.88) translateY(20px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .company-modal-top {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .company-modal-icon-wrap {
+        width: 60px;
+        height: 60px;
+        background: #1a1a2e;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .company-modal-icon-wrap svg {
+        width: 28px;
+        height: 28px;
+        stroke: #fff;
+        fill: none;
+        stroke-width: 1.8;
+    }
+
+    .company-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 7px;
+    }
+
+    .company-modal-sub {
+        font-size: 13px;
+        color: #888;
+        line-height: 1.6;
+    }
+
+    .company-modal-sub strong { color: #555; }
+
+    .company-option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .company-option {
+        border: 2px solid #e0e3e8;
+        border-radius: 14px;
+        padding: 16px 10px 12px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        background: #fafbfc;
+        transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.12s;
         user-select: none;
     }
 
-    .table-scroll-drag.dragging {
-        cursor: grabbing;
+    .company-option:hover {
+        border-color: #1a1a2e;
+        background: #f4f5f8;
+        color: #1a1a2e;
+        transform: translateY(-2px);
+    }
+
+    .company-option.selected {
+        border-color: #1a1a2e;
+        background: #1a1a2e;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(26, 26, 46, 0.22);
+    }
+
+    .company-option-emoji {
+        font-size: 26px;
+        line-height: 1;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .company-modal-confirm {
+        width: 100%;
+        padding: 13px;
+        border-radius: 12px;
+        border: none;
+        background: #1a1a2e;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: background 0.15s, opacity 0.15s;
+        letter-spacing: 0.2px;
+    }
+
+    .company-modal-confirm:hover:not(:disabled) { background: #2d2d4e; }
+
+    .company-modal-confirm:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .company-modal-error-msg {
+        display: none;
+        font-size: 12px;
+        color: #c62828;
+        text-align: center;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+
+    /* Locked factory pill shown in filter bar */
+    .locked-company-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #1a1a2e;
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        white-space: nowrap;
+        user-select: none;
+        min-height: 40px;
+    }
+
+    .locked-company-pill .lcp-emoji  { font-size: 16px; line-height: 1; }
+    .locked-company-pill .lcp-name   { color: #fff; }
+    .locked-company-pill .lcp-lock   {
+        font-size: 10px;
+        color: #8899bb;
+        background: rgba(255,255,255,0.08);
+        border-radius: 5px;
+        padding: 2px 6px;
+        margin-left: 2px;
+        letter-spacing: 0.3px;
+    }
+
+    .locked-company-pill svg {
+        width: 13px;
+        height: 13px;
+        stroke: #8899bb;
+        fill: none;
+        stroke-width: 2.2;
     }
 </style>
 
@@ -1299,6 +1435,20 @@ ksort($factoryList);
                 </div>
 
                 <div class="filters-wrap">
+
+                    <!-- Locked factory pill (non-admin, shown after selection) -->
+                    <div id="locked-company-wrap" style="display:none">
+                        <div class="locked-company-pill">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                            <span class="lcp-emoji" id="locked-company-emoji"></span>
+                            <span class="lcp-name" id="locked-company-name"></span>
+                            <span class="lcp-lock">locked</span>
+                        </div>
+                    </div>
+
                     <div class="search-box">
                         <svg viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8" />
@@ -1309,9 +1459,7 @@ ksort($factoryList);
 
                     <div class="filter-box">
                         <svg viewBox="0 0 24 24">
-                            <path d="M4 6h16" />
-                            <path d="M7 12h10" />
-                            <path d="M10 18h4" />
+                            <path d="M4 6h16" /><path d="M7 12h10" /><path d="M10 18h4" />
                         </svg>
                         <select id="status-filter">
                             <option value="">All Status</option>
@@ -1324,14 +1472,12 @@ ksort($factoryList);
                         </select>
                     </div>
 
-                    <div class="filter-box">
+                    <!-- Factory filter — locked for non-admin users after company selection -->
+                    <div class="filter-box" id="factory-filter-box">
                         <svg viewBox="0 0 24 24">
-                            <path d="M3 21h18" />
-                            <path d="M5 21V7l7-4 7 4v14" />
-                            <path d="M9 9h.01" />
-                            <path d="M15 9h.01" />
-                            <path d="M9 13h.01" />
-                            <path d="M15 13h.01" />
+                            <path d="M3 21h18" /><path d="M5 21V7l7-4 7 4v14" />
+                            <path d="M9 9h.01" /><path d="M15 9h.01" />
+                            <path d="M9 13h.01" /><path d="M15 13h.01" />
                         </svg>
                         <select id="factory-filter">
                             <option value="">All Factory</option>
@@ -1343,8 +1489,7 @@ ksort($factoryList);
 
                     <div class="filter-box">
                         <svg viewBox="0 0 24 24">
-                            <path d="M8 2v4" />
-                            <path d="M16 2v4" />
+                            <path d="M8 2v4" /><path d="M16 2v4" />
                             <rect x="3" y="4" width="18" height="18" rx="2" />
                             <path d="M3 10h18" />
                         </svg>
@@ -1408,16 +1553,14 @@ ksort($factoryList);
                                 'rejected'                   => 'status-rejected',
                                 default                      => 'status-other',
                             };
-                            $isAdmin   = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-                            // Mark done / reject: only for delivery_date_scheduled
-                            $canDone = $isAdmin && $st === 'delivery_date_scheduled';
-                            $canReject = $isAdmin && $st === 'delivery_date_scheduled';
-                            $canReschedule = $isAdmin && in_array($st, ['delivery_date_scheduled', 'rejected']);
-                            // Show date columns whenever data exists
-                            $showExp = !empty($row['expected_delivery_date']);
-                            $showSch = !empty($row['delivery_schedule_date']);
+                            $isAdminRow    = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+                            $canDone       = $isAdminRow && $st === 'delivery_date_scheduled';
+                            $canReject     = $isAdminRow && $st === 'delivery_date_scheduled';
+                            $canReschedule = $isAdminRow && in_array($st, ['delivery_date_scheduled', 'rejected']);
+                            $showExp       = !empty($row['expected_delivery_date']);
+                            $showSch       = !empty($row['delivery_schedule_date']);
                             $showReschedule = !empty($row['reschedule_date']);
-                            $showBuyerExp = !empty($row['buyer_expected_date']);
+                            $showBuyerExp  = !empty($row['buyer_expected_date']);
                         ?>
                             <tr data-po-id="<?= (int)$row['id'] ?>" data-po-status="<?= htmlspecialchars($row['po_status'] ?? '') ?>">
                                 <td style="color:#bbb;font-size:12px;font-family:'DM Mono',monospace"><?= $row['id'] ?></td>
@@ -1482,7 +1625,6 @@ ksort($factoryList);
                                     <?php else: ?><span style="color:#ccc;font-size:12px">—</span><?php endif; ?>
                                 </td>
 
-                                <!-- Reschedule Date column -->
                                 <td>
                                     <?php if ($showReschedule): ?>
                                         <span class="schedule-pill" style="background:#e8eaf6;color:#283593;">
@@ -1520,8 +1662,7 @@ ksort($factoryList);
                                             <button type="button" class="action-btn action-reschedule"
                                                 onclick="openRescheduleModal(<?= (int)$row['id'] ?>, '<?= htmlspecialchars(addslashes($row['po_number']), ENT_QUOTES) ?>')">
                                                 <svg viewBox="0 0 24 24">
-                                                    <path d="M23 4v6h-6" />
-                                                    <path d="M1 20v-6h6" />
+                                                    <path d="M23 4v6h-6" /><path d="M1 20v-6h6" />
                                                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                                                 </svg>Reschedule
                                             </button>
@@ -1550,8 +1691,7 @@ ksort($factoryList);
 
                                         <a href="po_workflow_history.php?po_id=<?= $row['id'] ?>" class="action-link action-view">
                                             <svg viewBox="0 0 24 24">
-                                                <path d="M12 8v4l3 3" />
-                                                <circle cx="12" cy="12" r="9" />
+                                                <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="9" />
                                             </svg>History
                                         </a>
                                     </div>
@@ -1577,8 +1717,7 @@ ksort($factoryList);
         <div class="reschedule-modal-header">
             <div class="reschedule-modal-icon">
                 <svg viewBox="0 0 24 24">
-                    <path d="M23 4v6h-6" />
-                    <path d="M1 20v-6h6" />
+                    <path d="M23 4v6h-6" /><path d="M1 20v-6h6" />
                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                 </svg>
             </div>
@@ -1627,7 +1766,7 @@ ksort($factoryList);
             <input type="hidden" name="po_id" id="reject-modal-po-id">
             <label for="reject-reason-textarea">Reason for Rejection <span style="color:#c62828">*</span></label>
             <textarea id="reject-reason-textarea" name="rejection_reason"
-                placeholder="Describe why this PO is being rejected (e.g. delivery was refused, damaged goods, wrong items…)"
+                placeholder="Describe why this PO is being rejected…"
                 maxlength="1000"></textarea>
             <div class="reject-modal-error" id="reject-modal-error">Please enter a rejection reason before confirming.</div>
             <div class="reject-modal-actions">
@@ -1638,44 +1777,83 @@ ksort($factoryList);
     </div>
 </div>
 
+<!-- ── Company / Factory Selection Modal (non-admin users only) ─────────── -->
+<div class="company-modal-overlay" id="company-modal-overlay">
+    <div class="company-modal" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
+        <div class="company-modal-top">
+            <div class="company-modal-icon-wrap">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </div>
+            <div class="company-modal-title" id="company-modal-title">Select Your Factory</div>
+            <div class="company-modal-sub">
+                Choose your factory.<br>
+                <strong>This choice is permanent</strong> — it filters your view to your factory orders only.
+            </div>
+        </div>
+
+        <div class="company-option-grid" id="company-option-grid">
+            <?php foreach ($factorySelectionList as $factory): ?>
+                <div class="company-option"
+                     data-value="<?= htmlspecialchars($factory) ?>"
+                     data-emoji="🏭">
+                    <span class="company-option-emoji">🏭</span>
+                    <?= htmlspecialchars($factory) ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <button type="button" class="company-modal-confirm" id="company-modal-confirm" disabled>
+            Confirm &amp; Continue →
+        </button>
+        <div class="company-modal-error-msg" id="company-modal-error-msg">
+            Please select a factory to continue.
+        </div>
+    </div>
+</div>
+
 <script>
-    var progressSection = document.getElementById('progress-bars-section');
+    var progressSection   = document.getElementById('progress-bars-section');
     var toggleProgressBtn = document.getElementById('toggle-progress-bars');
 
-    (function() {
+    (function () {
         'use strict';
 
-        var allRows = <?= json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-        var knownRows = {};
-        var IS_ADMIN = <?= json_encode(isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ?>;
+        var allRows      = <?= json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+        var knownRows    = {};
+        var IS_ADMIN     = <?= json_encode($isAdmin) ?>;
+        var CURRENT_UID  = <?= json_encode($currentUserId) ?>;
 
-        var searchInput = document.getElementById('search-input');
-        var statusFilter = document.getElementById('status-filter');
+        /* localStorage key scoped to this user */
+        var LS_COMPANY_KEY = 'po_locked_factory_uid_' + CURRENT_UID;
+
+        /* The active factory lock (null = no lock / admin) */
+        var lockedFactory = null;
+
+        var searchInput   = document.getElementById('search-input');
+        var statusFilter  = document.getElementById('status-filter');
         var factoryFilter = document.getElementById('factory-filter');
-        var dateFilter = document.getElementById('date-filter');
-        var clearBtn = document.getElementById('clear-filters-btn');
+        var factoryBox    = document.getElementById('factory-filter-box');
+        var dateFilter    = document.getElementById('date-filter');
+        var clearBtn      = document.getElementById('clear-filters-btn');
 
-        var pill = document.getElementById('refresh-pill');
+        var pill    = document.getElementById('refresh-pill');
         var pillLbl = document.getElementById('refresh-label');
-        var secs = 10;
+        var secs    = 10;
         var polling = false;
 
         /* ── Notifications ── */
         function canNotify() {
             return ('Notification' in window) && Notification.permission === 'granted';
         }
-
         function pushNotif(title, body) {
             if (!canNotify()) return;
-            try {
-                new Notification(title, {
-                    body: body,
-                    icon: '/favicon.ico'
-                });
-            } catch (_) {}
+            try { new Notification(title, { body: body, icon: '/favicon.ico' }); } catch (_) {}
         }
 
-        var banner = document.getElementById('notif-banner');
+        var banner  = document.getElementById('notif-banner');
         var nbAllow = document.getElementById('nb-allow');
         var nbDismis = document.getElementById('nb-dismiss');
 
@@ -1685,29 +1863,26 @@ ksort($factoryList);
                 banner.style.display = 'flex';
             }
         }
-
         if (nbAllow) {
-            nbAllow.addEventListener('click', function() {
-                Notification.requestPermission().then(function(p) {
+            nbAllow.addEventListener('click', function () {
+                Notification.requestPermission().then(function (p) {
                     banner.style.display = 'none';
                     if (p === 'granted') pushNotif('✅ Notifications enabled', 'You\'ll get alerts for PO status changes.');
                 });
             });
         }
-
         if (nbDismis) {
-            nbDismis.addEventListener('click', function() {
+            nbDismis.addEventListener('click', function () {
                 banner.style.display = 'none';
                 sessionStorage.setItem('nb-gone', '1');
             });
         }
-
         checkBanner();
 
         var justCreated = sessionStorage.getItem('po_created');
         if (justCreated) {
             sessionStorage.removeItem('po_created');
-            setTimeout(function() {
+            setTimeout(function () {
                 pushNotif('✅ Purchase Order Created', 'PO ' + justCreated + ' saved successfully.');
             }, 600);
         }
@@ -1715,16 +1890,12 @@ ksort($factoryList);
         /* ── Polling ── */
         function snapshotRows(rows) {
             var out = {};
-            rows.forEach(function(row) {
+            rows.forEach(function (row) {
                 var id = String(row.id);
-                out[id] = {
-                    id: id,
-                    po_status: row.po_status || ''
-                };
+                out[id] = { id: id, po_status: row.po_status || '' };
             });
             return out;
         }
-
         knownRows = snapshotRows(allRows);
 
         function tick() {
@@ -1758,50 +1929,30 @@ ksort($factoryList);
 
         function doFetch() {
             fetch('get_po_status.php?_=' + Date.now(), {
-                    credentials: 'same-origin',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(function(res) {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.text();
-                })
-                .then(function(text) {
-                    var data;
-                    try {
-                        data = JSON.parse(text);
-                    } catch (e) {
-                        throw e;
-                    }
-
-                    if (data.success) {
-                        detectChangesAndNotify(data.rows || []);
-                        allRows = data.rows || [];
-                        knownRows = snapshotRows(allRows);
-                        populateFactoryFilter(allRows);
-                        applyFiltersAndRender();
-                        setPillState('done');
-                    } else {
-                        setPillState('idle');
-                    }
-                })
-                .catch(function(err) {
-                    console.error('PO poller fetch error:', err);
-                    setPillState('idle');
-                })
-                .finally(function() {
-                    polling = false;
-                    secs = 10;
-                });
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+            .then(function (text) {
+                var data = JSON.parse(text);
+                if (data.success) {
+                    detectChangesAndNotify(data.rows || []);
+                    allRows   = data.rows || [];
+                    knownRows = snapshotRows(allRows);
+                    populateFactoryFilter(allRows);
+                    applyFiltersAndRender();
+                    setPillState('done');
+                } else { setPillState('idle'); }
+            })
+            .catch(function (err) { console.error('PO poller fetch error:', err); setPillState('idle'); })
+            .finally(function () { polling = false; secs = 10; });
         }
 
         function detectChangesAndNotify(rows) {
-            rows.forEach(function(row) {
-                var id = String(row.id);
+            rows.forEach(function (row) {
+                var id    = String(row.id);
                 var oldRow = knownRows[id];
-                var newSt = row.po_status || '';
-
+                var newSt  = row.po_status || '';
                 if (!oldRow) {
                     pushNotif('🆕 New Purchase Order', 'PO ' + (row.po_number || '') + ' · ' + (row.platform || 'N/A'));
                 } else if ((oldRow.po_status || '') !== newSt) {
@@ -1815,14 +1966,22 @@ ksort($factoryList);
         /* ── Filters ── */
         function getActiveFilters() {
             return {
-                search: (searchInput.value || '').trim().toLowerCase(),
-                status: (statusFilter.value || '').trim().toLowerCase(),
+                search:  (searchInput.value  || '').trim().toLowerCase(),
+                status:  (statusFilter.value || '').trim().toLowerCase(),
                 factory: (factoryFilter.value || '').trim(),
-                date: (dateFilter.value || '').trim()
+                date:    (dateFilter.value    || '').trim()
             };
         }
 
         function rowMatchesFilters(row, filters) {
+            /*
+             * FACTORY LOCK — always enforced for non-admin users.
+             * Compares against factory_name (not platform).
+             */
+            if (lockedFactory) {
+                if (String(row.factory_name || '') !== lockedFactory) return false;
+            }
+
             var searchText = [
                 row.id, row.po_number, row.platform, row.factory_name,
                 row.po_status, row.creator_name, row.release_date,
@@ -1830,25 +1989,22 @@ ksort($factoryList);
                 row.delivery_schedule_date, row.reschedule_date
             ].join(' ').toLowerCase();
 
-            if (filters.search && !searchText.includes(filters.search)) return false;
-            if (filters.status && String(row.po_status || '').toLowerCase() !== filters.status) return false;
-            if (filters.factory && String(row.factory_name || '') !== filters.factory) return false;
-            if (filters.date) {
-                if (normalizeDate(row.release_date) !== filters.date) return false;
-            }
+            if (filters.search  && !searchText.includes(filters.search)) return false;
+            if (filters.status  && String(row.po_status    || '').toLowerCase() !== filters.status) return false;
+            if (filters.factory && String(row.factory_name || '')                !== filters.factory) return false;
+            if (filters.date    && normalizeDate(row.release_date)               !== filters.date) return false;
+
             return true;
         }
 
         function applyFiltersAndRender() {
-            var filters = getActiveFilters();
-            var filteredRows = allRows.filter(function(row) {
-                return rowMatchesFilters(row, filters);
-            });
+            var filters      = getActiveFilters();
+            var filteredRows = allRows.filter(function (row) { return rowMatchesFilters(row, filters); });
 
             renderTable(filteredRows);
             updateCards(filteredRows);
 
-            updateDateAlertBar('expiry', calculateDateAlertStats(filteredRows, 'expiry_date'), 'expiry date');
+            updateDateAlertBar('expiry',   calculateDateAlertStats(filteredRows, 'expiry_date'),            'expiry date');
             updateDateAlertBar('expected', calculateDateAlertStats(filteredRows, 'expected_delivery_date'), 'expected delivery date');
             updateDateAlertBar('schedule', calculateDateAlertStats(filteredRows, 'delivery_schedule_date'), 'schedule date');
         }
@@ -1865,124 +2021,103 @@ ksort($factoryList);
                     '</div></td></tr>';
                 return;
             }
-
             var html = '';
-            rows.forEach(function(row) {
-                html += buildRowHtml(row, '');
-            });
+            rows.forEach(function (row) { html += buildRowHtml(row, ''); });
             tbody.innerHTML = html;
         }
 
         /* ── Stats cards ── */
         function updateCards(rows) {
-            var stats = {
-                total: rows.length,
-                done: 0,
-                rejected: 0,
-                scheduled: 0,
-                needs_schedule: 0,
-                open: 0
-            };
-
-            rows.forEach(function(r) {
+            var stats = { total: rows.length, done: 0, rejected: 0, scheduled: 0, needs_schedule: 0, open: 0 };
+            rows.forEach(function (r) {
                 var st = String(r.po_status || '').toLowerCase();
-                if (st === 'done') stats.done++;
-                if (st === 'rejected') stats.rejected++;
-                if (st === 'delivery_date_scheduled') stats.scheduled++;
-                if (st === 'sent_to_schedule_delivery') stats.needs_schedule++;
+                if (st === 'done')                       stats.done++;
+                if (st === 'rejected')                   stats.rejected++;
+                if (st === 'delivery_date_scheduled')    stats.scheduled++;
+                if (st === 'sent_to_schedule_delivery')  stats.needs_schedule++;
             });
-
             stats.open = stats.total - stats.done - stats.rejected;
             processStats(stats);
         }
 
         function processStats(stats) {
             if (!stats) return;
-
             var pairs = {
-                'stat-total': stats.total,
-                'stat-open': stats.open,
-                'stat-needs': stats.needs_schedule,
+                'stat-total':     stats.total,
+                'stat-open':      stats.open,
+                'stat-needs':     stats.needs_schedule,
                 'stat-scheduled': stats.scheduled,
-                'stat-done': stats.done,
-                'stat-rejected': stats.rejected || 0
+                'stat-done':      stats.done,
+                'stat-rejected':  stats.rejected || 0
             };
-
-            Object.keys(pairs).forEach(function(id) {
-                var el = document.getElementById(id);
+            Object.keys(pairs).forEach(function (id) {
+                var el  = document.getElementById(id);
                 var val = String(pairs[id] ?? 0);
                 if (el && el.textContent.trim() !== val) {
                     el.textContent = val;
                     el.classList.remove('stat-bump');
                     void el.offsetWidth;
                     el.classList.add('stat-bump');
-                    setTimeout(function() {
-                        el.classList.remove('stat-bump');
-                    }, 400);
-                } else if (el) {
-                    el.textContent = val;
-                }
+                    setTimeout(function () { el.classList.remove('stat-bump'); }, 400);
+                } else if (el) { el.textContent = val; }
             });
 
-            /* Done-rate bar */
-            var doneRate = stats.total > 0 ? ((stats.done / stats.total) * 100) : 0;
-            var rejectedRate = stats.total > 0 ? (((stats.rejected || 0) / stats.total) * 100) : 0;
-            var openCount = Math.max(stats.total - stats.done - (stats.rejected || 0), 0);
-            var openRate = stats.total > 0 ? ((openCount / stats.total) * 100) : 0;
+            var doneRate     = stats.total > 0 ? ((stats.done         / stats.total) * 100) : 0;
+            var rejectedRate = stats.total > 0 ? (((stats.rejected||0) / stats.total) * 100) : 0;
+            var openCount    = Math.max(stats.total - stats.done - (stats.rejected||0), 0);
+            var openRate     = stats.total > 0 ? ((openCount / stats.total) * 100) : 0;
 
-            var roundedRate = Math.round(doneRate * 10) / 10;
-            var roundedRej = Math.round(rejectedRate * 10) / 10;
-            var roundedOpen = Math.round(openRate * 10) / 10;
+            var rRate = Math.round(doneRate     * 10) / 10;
+            var rRej  = Math.round(rejectedRate * 10) / 10;
+            var rOpen = Math.round(openRate     * 10) / 10;
 
-            var rateFill = document.getElementById('po-done-rate-fill');
-            var rateText = document.getElementById('po-done-rate-text');
-            var rateMeta = document.getElementById('po-done-rate-meta');
-            var rejectFill = document.getElementById('po-rejected-rate-fill');
-            var rejectText = document.getElementById('po-rejected-rate-text');
-            var openFill = document.getElementById('po-open-rate-fill');
-            var openText = document.getElementById('po-open-rate-text');
+            var rf = document.getElementById('po-done-rate-fill');
+            var rt = document.getElementById('po-done-rate-text');
+            var rm = document.getElementById('po-done-rate-meta');
+            var ej = document.getElementById('po-rejected-rate-fill');
+            var et = document.getElementById('po-rejected-rate-text');
+            var of = document.getElementById('po-open-rate-fill');
+            var ot = document.getElementById('po-open-rate-text');
 
-            if (rateFill) rateFill.style.width = roundedRate + '%';
-            if (rateText) rateText.textContent = roundedRate + '%';
-            if (rejectFill) rejectFill.style.width = roundedRej + '%';
-            if (rejectText) rejectText.textContent = roundedRej + '%';
-            if (openFill) openFill.style.width = roundedOpen + '%';
-            if (openText) openText.textContent = roundedOpen + '%';
-
-            if (rateMeta) {
-                rateMeta.textContent = stats.done + ' done · ' + (stats.rejected || 0) + ' rejected · ' + stats.total + ' total';
-            }
+            if (rf) rf.style.width = rRate + '%';
+            if (rt) rt.textContent  = rRate + '%';
+            if (ej) ej.style.width  = rRej  + '%';
+            if (et) et.textContent  = rRej  + '%';
+            if (of) of.style.width  = rOpen + '%';
+            if (ot) ot.textContent  = rOpen + '%';
+            if (rm) rm.textContent  = stats.done + ' done · ' + (stats.rejected||0) + ' rejected · ' + stats.total + ' total';
         }
 
+        /* Re-populate factory dropdown (preserves current selection, respects lock) */
         function populateFactoryFilter(rows) {
+            /* If factory is locked, skip repopulating — dropdown is disabled */
+            if (lockedFactory) return;
+
             var currentValue = factoryFilter.value;
             var factories = {};
-            rows.forEach(function(row) {
+            rows.forEach(function (row) {
                 var f = String(row.factory_name || '').trim();
                 if (f) factories[f] = true;
             });
-            var sorted = Object.keys(factories).sort(function(a, b) {
-                return a.localeCompare(b);
-            });
+            var sorted = Object.keys(factories).sort(function (a, b) { return a.localeCompare(b); });
             var html = '<option value="">All Factory</option>';
-            sorted.forEach(function(f) {
-                html += '<option value="' + e(f) + '">' + e(f) + '</option>';
-            });
+            sorted.forEach(function (f) { html += '<option value="' + e(f) + '">' + e(f) + '</option>'; });
             factoryFilter.innerHTML = html;
             if (currentValue && factories[currentValue]) factoryFilter.value = currentValue;
             else if (currentValue) factoryFilter.value = '';
         }
 
-        if (searchInput) searchInput.addEventListener('input', applyFiltersAndRender);
-        if (statusFilter) statusFilter.addEventListener('change', applyFiltersAndRender);
+        if (searchInput)   searchInput.addEventListener('input',  applyFiltersAndRender);
+        if (statusFilter)  statusFilter.addEventListener('change', applyFiltersAndRender);
         if (factoryFilter) factoryFilter.addEventListener('change', applyFiltersAndRender);
-        if (dateFilter) dateFilter.addEventListener('change', applyFiltersAndRender);
+        if (dateFilter)    dateFilter.addEventListener('change',   applyFiltersAndRender);
         if (clearBtn) {
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
+            clearBtn.addEventListener('click', function () {
+                searchInput.value  = '';
                 statusFilter.value = '';
-                factoryFilter.value = '';
-                dateFilter.value = '';
+                /* Do NOT reset factory filter if locked */
+                if (!lockedFactory) factoryFilter.value = '';
+                dateFilter.value   = '';
                 applyFiltersAndRender();
             });
         }
@@ -1991,87 +2126,54 @@ ksort($factoryList);
         function buildRowHtml(row, rowClass) {
             var st = (row.po_status || '').toLowerCase();
 
-            // Show date columns whenever data exists (regardless of status)
-            var showExp = !!row.expected_delivery_date;
-            var showSch = !!row.delivery_schedule_date;
+            var showExp        = !!row.expected_delivery_date;
+            var showSch        = !!row.delivery_schedule_date;
             var showReschedule = !!row.reschedule_date;
-            var showBuyerExp = !!row.buyer_expected_date;
+            var showBuyerExp   = !!row.buyer_expected_date;
 
-            var canDone = IS_ADMIN && st === 'delivery_date_scheduled';
+            var canDone       = IS_ADMIN && st === 'delivery_date_scheduled';
             var canReschedule = IS_ADMIN && ['delivery_date_scheduled', 'rejected'].includes(st);
 
-            /* Expected delivery */
-            var expectedHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-            if (showExp) {
-                expectedHtml =
-                    '<span class="schedule-pill">' +
-                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                    e(fmtDate(row.expected_delivery_date)) +
-                    '</span>';
-            }
+            var expectedHtml = showExp
+                ? '<span class="schedule-pill"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + e(fmtDate(row.expected_delivery_date)) + '</span>'
+                : '<span style="color:#ccc;font-size:12px">—</span>';
 
-            /* Schedule date */
-            var scheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-            if (showSch) {
-                scheduleHtml =
-                    '<span class="schedule-pill">' +
-                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                    e(fmtDate(row.delivery_schedule_date)) +
-                    '</span>';
-            }
+            var scheduleHtml = showSch
+                ? '<span class="schedule-pill"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + e(fmtDate(row.delivery_schedule_date)) + '</span>'
+                : '<span style="color:#ccc;font-size:12px">—</span>';
 
-            /* Reschedule date */
-            var rescheduleHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-            if (showReschedule) {
-                rescheduleHtml =
-                    '<span class="schedule-pill" style="background:#e8eaf6;color:#283593;">' +
-                    '<svg viewBox="0 0 24 24" style="stroke:#283593"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                    e(fmtDate(row.reschedule_date)) +
-                    '</span>';
-            }
+            var rescheduleHtml = showReschedule
+                ? '<span class="schedule-pill" style="background:#e8eaf6;color:#283593;"><svg viewBox="0 0 24 24" style="stroke:#283593"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + e(fmtDate(row.reschedule_date)) + '</span>'
+                : '<span style="color:#ccc;font-size:12px">—</span>';
 
-            /* Buyer expected date */
-            var buyerExpHtml = '<span style="color:#ccc;font-size:12px">—</span>';
-            if (showBuyerExp) {
-                buyerExpHtml =
-                    '<span class="schedule-pill" style="background:#e3f2fd;color:#1565c0;">' +
-                    '<svg viewBox="0 0 24 24" style="stroke:#1565c0"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                    e(fmtDate(row.buyer_expected_date)) +
-                    '</span>';
-            }
+            var buyerExpHtml = showBuyerExp
+                ? '<span class="schedule-pill" style="background:#e3f2fd;color:#1565c0;"><svg viewBox="0 0 24 24" style="stroke:#1565c0"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + e(fmtDate(row.buyer_expected_date)) + '</span>'
+                : '<span style="color:#ccc;font-size:12px">—</span>';
 
-            /* PDF */
-            var pdfHtml = row.pdf_file_path ?
-                '<a href="' + e(row.pdf_file_path) + '" target="_blank" class="action-link action-pdf">' +
-                '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</a>' :
-                '<span class="no-pdf">No PDF</span>';
+            var pdfHtml = row.pdf_file_path
+                ? '<a href="' + e(row.pdf_file_path) + '" target="_blank" class="action-link action-pdf"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</a>'
+                : '<span class="no-pdf">No PDF</span>';
 
-            /* Reschedule button */
             var rescheduleBtn = '';
             if (canReschedule) {
                 rescheduleBtn =
                     '<button type="button" class="action-btn action-reschedule" ' +
                     'onclick="openRescheduleModal(' + e(row.id) + ', \'' + e(row.po_number || '').replace(/'/g, "\\'") + '\')">' +
                     '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>' +
-                    '<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reschedule' +
-                    '</button>';
+                    '<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reschedule</button>';
             }
 
-            /* Mark done + reject buttons */
             var doneRejectHtml = '';
             if (canDone) {
                 doneRejectHtml =
                     '<form method="POST" action="mark_po_done.php" onsubmit="return confirm(\'Mark this PO as done?\');" style="display:inline;">' +
                     '<input type="hidden" name="po_id" value="' + e(row.id) + '">' +
-                    '<button type="submit" class="action-btn action-done">' +
-                    '<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done</button>' +
-                    '</form>' +
+                    '<button type="submit" class="action-btn action-done"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Mark Done</button></form>' +
                     '<button type="button" class="action-btn action-reject" ' +
                     'onclick="openRejectModal(' + e(row.id) + ', \'' + e(row.po_number || '').replace(/'/g, "\\'") + '\')">' +
                     '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reject</button>';
             }
 
-            /* Status badge */
             var statusHtml;
             if (st === 'rejected') {
                 var safeReason = e(row.rejection_reason || 'No reason provided');
@@ -2101,46 +2203,33 @@ ksort($factoryList);
                 '<td>' + scheduleHtml + '</td>' +
                 '<td>' + rescheduleHtml + '</td>' +
                 '<td style="font-size:12px;color:#666">' + e(row.creator_name || '—') + '</td>' +
-                '<td>' +
-                '<div class="action-group">' +
-                '<a href="po_view.php?id=' + e(row.id) + '" class="action-link action-view">' +
-                '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</a>' +
-                pdfHtml +
-                rescheduleBtn +
-                doneRejectHtml +
-                '<a href="po_workflow_history.php?po_id=' + e(row.id) + '" class="action-link action-view">' +
-                '<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History</a>' +
-                '</div></td>' +
-                '</tr>';
+                '<td><div class="action-group">' +
+                '<a href="po_view.php?id=' + e(row.id) + '" class="action-link action-view"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</a>' +
+                pdfHtml + rescheduleBtn + doneRejectHtml +
+                '<a href="po_workflow_history.php?po_id=' + e(row.id) + '" class="action-link action-view"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>History</a>' +
+                '</div></td></tr>';
         }
 
         /* ── Helpers ── */
         function statusClass(s) {
             var m = {
-                'pending': 'status-pending',
-                'in_progress': 'status-in_progress',
+                'pending':                   'status-pending',
+                'in_progress':               'status-in_progress',
                 'sent_to_schedule_delivery': 'status-sent_to_schedule_delivery',
-                'delivery_date_scheduled': 'status-delivery_date_scheduled',
-                'done': 'status-done',
-                'rejected': 'status-rejected'
+                'delivery_date_scheduled':   'status-delivery_date_scheduled',
+                'done':                      'status-done',
+                'rejected':                  'status-rejected'
             };
             return m[(s || '').toLowerCase()] || 'status-other';
         }
 
         function platClass(p) {
-            var m = {
-                'instamart': 'badge-instamart',
-                'blinkit': 'badge-blinkit',
-                'zepto': 'badge-zepto',
-                'flipkart': 'badge-flipkart'
-            };
+            var m = { 'instamart': 'badge-instamart', 'blinkit': 'badge-blinkit', 'zepto': 'badge-zepto', 'flipkart': 'badge-flipkart' };
             return m[(p || '').toLowerCase()] || 'badge-default';
         }
 
         function formatStatus(s) {
-            return (s || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, function(c) {
-                return c.toUpperCase();
-            });
+            return (s || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
         }
 
         function fmtDate(d) {
@@ -2158,19 +2247,13 @@ ksort($factoryList);
             if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
             var dt = new Date(d);
             if (isNaN(dt.getTime())) return '';
-            var y = dt.getFullYear();
-            var mo = String(dt.getMonth() + 1).padStart(2, '0');
-            var day = String(dt.getDate()).padStart(2, '0');
-            return y + '-' + mo + '-' + day;
+            return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
         }
 
         function e(s) {
             return String(s == null ? '' : s)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
         /* ── Progress bar toggle ── */
@@ -2179,81 +2262,177 @@ ksort($factoryList);
             progressSection.style.display = hidden ? 'none' : '';
             toggleProgressBtn.textContent = hidden ? 'Show Progress Bars' : 'Hide Progress Bars';
         }
-
         if (toggleProgressBtn) {
             var savedHidden = localStorage.getItem('po_progress_bars_hidden') === '1';
             applyProgressBarVisibility(savedHidden);
-
-            toggleProgressBtn.addEventListener('click', function() {
+            toggleProgressBtn.addEventListener('click', function () {
                 var nextHidden = progressSection.style.display !== 'none';
                 applyProgressBarVisibility(nextHidden);
                 localStorage.setItem('po_progress_bars_hidden', nextHidden ? '1' : '0');
             });
         }
 
+        /* ══════════════════════════════════════════════════════════════════
+           Factory Lock Logic
+           ══════════════════════════════════════════════════════════════════ */
+
+        /**
+         * Persist the chosen factory to localStorage AND server-side session.
+         */
+        function saveFactoryChoice(factory) {
+            try { localStorage.setItem(LS_COMPANY_KEY, factory); } catch (_) {}
+            fetch('save_user_company.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'company=' + encodeURIComponent(factory)
+            }).catch(function () { /* silently ignore */ });
+        }
+
+        /**
+         * Load previously saved factory.
+         * Priority: localStorage → PHP session value baked into the page.
+         */
+        function loadSavedFactory() {
+            var ls = null;
+            try { ls = localStorage.getItem(LS_COMPANY_KEY); } catch (_) {}
+            if (ls) return ls;
+
+            var phpSessionValue = <?= json_encode($sessionCompany) ?>;
+            if (phpSessionValue) {
+                try { localStorage.setItem(LS_COMPANY_KEY, phpSessionValue); } catch (_) {}
+            }
+            return phpSessionValue || null;
+        }
+
+        /**
+         * Lock the factory filter dropdown and show the locked pill.
+         * Filters the table to only show rows matching factory_name.
+         */
+        function applyLockedFactory(factory) {
+            lockedFactory = factory;
+
+            /* Show locked pill */
+            var wrap    = document.getElementById('locked-company-wrap');
+            var nameEl  = document.getElementById('locked-company-name');
+            var emojiEl = document.getElementById('locked-company-emoji');
+            if (wrap)    wrap.style.display    = '';
+            if (nameEl)  nameEl.textContent    = factory;
+            if (emojiEl) emojiEl.textContent   = '🏭';
+
+            /* Lock the factory dropdown: set value, disable interaction, add visual style */
+            if (factoryFilter) {
+                /* Ensure the option exists; add it if it was somehow missing */
+                var exists = Array.from(factoryFilter.options).some(function (o) { return o.value === factory; });
+                if (!exists) {
+                    var opt = document.createElement('option');
+                    opt.value = factory;
+                    opt.textContent = factory;
+                    factoryFilter.appendChild(opt);
+                }
+                factoryFilter.value    = factory;
+                factoryFilter.disabled = true;
+            }
+            if (factoryBox) factoryBox.classList.add('is-locked');
+        }
+
+        /* ── Company Modal UI ── */
+        var companyOverlay  = document.getElementById('company-modal-overlay');
+        var companyGrid     = document.getElementById('company-option-grid');
+        var companyConfirm  = document.getElementById('company-modal-confirm');
+        var companyErrorMsg = document.getElementById('company-modal-error-msg');
+        var selectedFactory = null;
+
+        if (companyGrid) {
+            companyGrid.addEventListener('click', function (ev) {
+                var opt = ev.target.closest('.company-option');
+                if (!opt) return;
+                companyGrid.querySelectorAll('.company-option').forEach(function (el) { el.classList.remove('selected'); });
+                opt.classList.add('selected');
+                selectedFactory          = opt.dataset.value;
+                companyConfirm.disabled  = false;
+                companyErrorMsg.style.display = 'none';
+            });
+        }
+
+        if (companyConfirm) {
+            companyConfirm.addEventListener('click', function () {
+                if (!selectedFactory) {
+                    companyErrorMsg.style.display = 'block';
+                    return;
+                }
+                saveFactoryChoice(selectedFactory);
+                companyOverlay.classList.remove('active');
+                applyLockedFactory(selectedFactory);
+                applyFiltersAndRender(); /* immediately filter table */
+            });
+        }
+
+        /* ESC does NOT close the company modal — selection is mandatory */
+
+        /* ── Bootstrap: decide whether to show modal or apply saved choice ── */
+        if (IS_ADMIN) {
+            /* Admins see everything — no lock, no modal */
+        } else {
+            var saved = loadSavedFactory();
+            if (saved) {
+                applyLockedFactory(saved); /* returning user — apply silently */
+            } else {
+                companyOverlay.classList.add('active'); /* first visit — show modal */
+            }
+        }
+
+        /* ── Initial render ── */
         populateFactoryFilter(allRows);
         applyFiltersAndRender();
 
-    })();
+    })(); /* end IIFE */
 
-    /* ── Date alert stats (global, used by both PHP-rendered and JS-rendered) ── */
+    /* ── Date alert stats ── */
     function calculateDateAlertStats(rows, fieldName) {
         var today = new Date();
         today.setHours(0, 0, 0, 0);
-
-        var stats = {
-            total: 0,
-            safe: 0,
-            near: 0,
-            reached: 0,
-            safe_pct: 0,
-            near_pct: 0,
-            reached_pct: 0
-        };
-
-        rows.forEach(function(row) {
-            var raw = row[fieldName];
+        var stats = { total: 0, safe: 0, near: 0, reached: 0, safe_pct: 0, near_pct: 0, reached_pct: 0 };
+        rows.forEach(function (row) {
+            var raw    = row[fieldName];
             if (!raw || raw === '0000-00-00') return;
-
             var status = String(row.po_status || '').toLowerCase();
             if (fieldName === 'delivery_schedule_date' && status === 'done') return;
-
             var dt = new Date(raw);
             if (isNaN(dt.getTime())) return;
             dt.setHours(0, 0, 0, 0);
-
             var diffDays = Math.floor((dt.getTime() - today.getTime()) / 86400000);
             stats.total++;
             if (diffDays < 0) stats.reached++;
             else if (diffDays <= 3) stats.near++;
             else stats.safe++;
         });
-
         if (stats.total > 0) {
-            stats.safe_pct = (stats.safe / stats.total) * 100;
-            stats.near_pct = (stats.near / stats.total) * 100;
+            stats.safe_pct    = (stats.safe    / stats.total) * 100;
+            stats.near_pct    = (stats.near    / stats.total) * 100;
             stats.reached_pct = (stats.reached / stats.total) * 100;
         }
-
         return stats;
     }
 
     function updateDateAlertBar(prefix, stats, labelText) {
-        var safeEl = document.getElementById(prefix + '-safe');
-        var nearEl = document.getElementById(prefix + '-near');
+        var safeEl    = document.getElementById(prefix + '-safe');
+        var nearEl    = document.getElementById(prefix + '-near');
         var reachedEl = document.getElementById(prefix + '-reached');
-        var metaEl = document.getElementById(prefix + '-meta');
-        var legendEl = document.getElementById(prefix + '-legend');
+        var metaEl    = document.getElementById(prefix + '-meta');
+        var legendEl  = document.getElementById(prefix + '-legend');
 
-        if (safeEl) safeEl.style.width = stats.safe_pct.toFixed(1) + '%';
-        if (nearEl) nearEl.style.width = stats.near_pct.toFixed(1) + '%';
+        if (safeEl)    safeEl.style.width    = stats.safe_pct.toFixed(1)    + '%';
+        if (nearEl)    nearEl.style.width    = stats.near_pct.toFixed(1)    + '%';
         if (reachedEl) reachedEl.style.width = stats.reached_pct.toFixed(1) + '%';
-
-        if (metaEl) metaEl.textContent = stats.total + ' items with ' + labelText;
+        if (metaEl)    metaEl.textContent    = stats.total + ' items with ' + labelText;
         if (legendEl) {
             legendEl.innerHTML =
-                '<span class="legend-item"><span class="legend-dot legend-safe"></span> Safe: ' + stats.safe + '</span>' +
-                '<span class="legend-item"><span class="legend-dot legend-near"></span> Near: ' + stats.near + '</span>' +
+                '<span class="legend-item"><span class="legend-dot legend-safe"></span> Safe: '    + stats.safe    + '</span>' +
+                '<span class="legend-item"><span class="legend-dot legend-near"></span> Near: '    + stats.near    + '</span>' +
                 '<span class="legend-item"><span class="legend-dot legend-reached"></span> Reached: ' + stats.reached + '</span>';
         }
     }
@@ -2261,12 +2440,11 @@ ksort($factoryList);
     /* ── Rejection reason popover ── */
     var reasonPopover = document.getElementById('reject-reason-popover');
     var reasonPopText = document.getElementById('reject-reason-popover-text');
-    var activeBadge = null;
+    var activeBadge   = null;
 
-    window.showRejectReason = function(badgeEl, reason) {
+    window.showRejectReason = function (badgeEl, reason) {
         if (activeBadge === badgeEl && reasonPopover.classList.contains('visible')) {
-            hideReasonPopover();
-            return;
+            hideReasonPopover(); return;
         }
         activeBadge = badgeEl;
         reasonPopText.textContent = reason || 'No reason provided';
@@ -2275,150 +2453,100 @@ ksort($factoryList);
     };
 
     function positionPopover(anchor) {
-        var rect = anchor.getBoundingClientRect();
-        var popW = 280;
-        var left = rect.left;
+        var rect   = anchor.getBoundingClientRect();
+        var popW   = 280;
+        var left   = rect.left;
         if (left + popW > window.innerWidth - 12) left = window.innerWidth - popW - 12;
         if (left < 8) left = 8;
         reasonPopover.style.left = left + 'px';
-        reasonPopover.style.top = (rect.bottom + 10) + 'px';
+        reasonPopover.style.top  = (rect.bottom + 10) + 'px';
         var arrowLeft = Math.min(Math.max(rect.left + rect.width / 2 - left - 6, 10), popW - 22);
         reasonPopover.style.setProperty('--arrow-left', arrowLeft + 'px');
     }
 
-    function hideReasonPopover() {
-        reasonPopover.classList.remove('visible');
-        activeBadge = null;
-    }
+    function hideReasonPopover() { reasonPopover.classList.remove('visible'); activeBadge = null; }
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!reasonPopover.contains(e.target) && !e.target.closest('.status-rejected')) hideReasonPopover();
     });
     window.addEventListener('scroll', hideReasonPopover, true);
-    window.addEventListener('resize', function() {
-        if (activeBadge) positionPopover(activeBadge);
-    });
+    window.addEventListener('resize', function () { if (activeBadge) positionPopover(activeBadge); });
 
     /* ── Rejection Modal ── */
-    var rejectOverlay = document.getElementById('reject-modal-overlay');
-    var rejectForm = document.getElementById('reject-modal-form');
-    var rejectPoIdIn = document.getElementById('reject-modal-po-id');
-    var rejectPoNumEl = document.getElementById('reject-modal-po-num');
-    var rejectTextarea = document.getElementById('reject-reason-textarea');
-    var rejectError = document.getElementById('reject-modal-error');
-    var rejectCancel = document.getElementById('reject-modal-cancel');
+    var rejectOverlay   = document.getElementById('reject-modal-overlay');
+    var rejectForm      = document.getElementById('reject-modal-form');
+    var rejectPoIdIn    = document.getElementById('reject-modal-po-id');
+    var rejectPoNumEl   = document.getElementById('reject-modal-po-num');
+    var rejectTextarea  = document.getElementById('reject-reason-textarea');
+    var rejectError     = document.getElementById('reject-modal-error');
+    var rejectCancel    = document.getElementById('reject-modal-cancel');
 
-    window.openRejectModal = function(poId, poNumber) {
-        rejectPoIdIn.value = poId;
+    window.openRejectModal = function (poId, poNumber) {
+        rejectPoIdIn.value    = poId;
         rejectPoNumEl.textContent = 'PO #' + poNumber;
-        rejectTextarea.value = '';
+        rejectTextarea.value  = '';
         rejectError.style.display = 'none';
         rejectOverlay.classList.add('active');
-        setTimeout(function() {
-            rejectTextarea.focus();
-        }, 80);
+        setTimeout(function () { rejectTextarea.focus(); }, 80);
     };
-
-    function closeRejectModal() {
-        rejectOverlay.classList.remove('active');
-    }
-
-    if (rejectCancel) rejectCancel.addEventListener('click', closeRejectModal);
-    if (rejectOverlay) rejectOverlay.addEventListener('click', function(e) {
-        if (e.target === rejectOverlay) closeRejectModal();
-    });
-
+    function closeRejectModal() { rejectOverlay.classList.remove('active'); }
+    if (rejectCancel)  rejectCancel.addEventListener('click', closeRejectModal);
+    if (rejectOverlay) rejectOverlay.addEventListener('click', function (e) { if (e.target === rejectOverlay) closeRejectModal(); });
     if (rejectForm) {
-        rejectForm.addEventListener('submit', function(e) {
-            if (!rejectTextarea.value.trim()) {
-                e.preventDefault();
-                rejectError.style.display = 'block';
-                rejectTextarea.focus();
-            } else {
-                rejectError.style.display = 'none';
-            }
+        rejectForm.addEventListener('submit', function (e) {
+            if (!rejectTextarea.value.trim()) { e.preventDefault(); rejectError.style.display = 'block'; rejectTextarea.focus(); }
+            else { rejectError.style.display = 'none'; }
         });
     }
 
     /* ── Reschedule Modal ── */
-    var rescheduleOverlay = document.getElementById('reschedule-modal-overlay');
-    var rescheduleForm = document.getElementById('reschedule-modal-form');
-    var reschedulePoIdIn = document.getElementById('reschedule-modal-po-id');
-    var reschedulePoNumEl = document.getElementById('reschedule-modal-po-num');
-    var rescheduleDateIn = document.getElementById('reschedule-date-input');
-    var rescheduleError = document.getElementById('reschedule-modal-error');
-    var rescheduleCancel = document.getElementById('reschedule-modal-cancel');
+    var rescheduleOverlay  = document.getElementById('reschedule-modal-overlay');
+    var rescheduleForm     = document.getElementById('reschedule-modal-form');
+    var reschedulePoIdIn   = document.getElementById('reschedule-modal-po-id');
+    var reschedulePoNumEl  = document.getElementById('reschedule-modal-po-num');
+    var rescheduleDateIn   = document.getElementById('reschedule-date-input');
+    var rescheduleError    = document.getElementById('reschedule-modal-error');
+    var rescheduleCancel   = document.getElementById('reschedule-modal-cancel');
 
-    window.openRescheduleModal = function(poId, poNumber) {
-        reschedulePoIdIn.value = poId;
+    window.openRescheduleModal = function (poId, poNumber) {
+        reschedulePoIdIn.value    = poId;
         reschedulePoNumEl.textContent = 'PO #' + poNumber;
-        rescheduleDateIn.value = '';
+        rescheduleDateIn.value    = '';
         rescheduleError.style.display = 'none';
         rescheduleOverlay.classList.add('active');
-        setTimeout(function() {
-            rescheduleDateIn.focus();
-        }, 80);
+        setTimeout(function () { rescheduleDateIn.focus(); }, 80);
     };
-
-    function closeRescheduleModal() {
-        rescheduleOverlay.classList.remove('active');
-    }
-
-    if (rescheduleCancel) rescheduleCancel.addEventListener('click', closeRescheduleModal);
-    if (rescheduleOverlay) rescheduleOverlay.addEventListener('click', function(e) {
-        if (e.target === rescheduleOverlay) closeRescheduleModal();
-    });
-
+    function closeRescheduleModal() { rescheduleOverlay.classList.remove('active'); }
+    if (rescheduleCancel)  rescheduleCancel.addEventListener('click', closeRescheduleModal);
+    if (rescheduleOverlay) rescheduleOverlay.addEventListener('click', function (e) { if (e.target === rescheduleOverlay) closeRescheduleModal(); });
     if (rescheduleForm) {
-        rescheduleForm.addEventListener('submit', function(e) {
-            if (!rescheduleDateIn.value) {
-                e.preventDefault();
-                rescheduleError.style.display = 'block';
-                rescheduleDateIn.focus();
-            } else {
-                rescheduleError.style.display = 'none';
-            }
+        rescheduleForm.addEventListener('submit', function (e) {
+            if (!rescheduleDateIn.value) { e.preventDefault(); rescheduleError.style.display = 'block'; rescheduleDateIn.focus(); }
+            else { rescheduleError.style.display = 'none'; }
         });
     }
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (rejectOverlay && rejectOverlay.classList.contains('active')) closeRejectModal();
-            if (rescheduleOverlay && rescheduleOverlay.classList.contains('active')) closeRescheduleModal();
-        }
+    /* ESC: closes reject / reschedule modals only — NOT the company modal */
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (rejectOverlay     && rejectOverlay.classList.contains('active'))     closeRejectModal();
+        if (rescheduleOverlay && rescheduleOverlay.classList.contains('active')) closeRescheduleModal();
+        /* company-modal-overlay intentionally NOT closeable via Escape */
     });
 
-    const tableDrag = document.getElementById('table-scroll-drag');
-
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    tableDrag.addEventListener('mousedown', function(e) {
-        isDown = true;
-        tableDrag.classList.add('dragging');
-        startX = e.pageX - tableDrag.offsetLeft;
-        scrollLeft = tableDrag.scrollLeft;
+    /* ── Table drag-to-scroll ── */
+    var tableDrag = document.getElementById('table-scroll-drag');
+    var isDown = false, startX, scrollLeft;
+    tableDrag.addEventListener('mousedown', function (e) {
+        isDown = true; tableDrag.classList.add('dragging');
+        startX = e.pageX - tableDrag.offsetLeft; scrollLeft = tableDrag.scrollLeft;
     });
-
-    tableDrag.addEventListener('mouseleave', function() {
-        isDown = false;
-        tableDrag.classList.remove('dragging');
-    });
-
-    tableDrag.addEventListener('mouseup', function() {
-        isDown = false;
-        tableDrag.classList.remove('dragging');
-    });
-
-    tableDrag.addEventListener('mousemove', function(e) {
+    tableDrag.addEventListener('mouseleave',  function () { isDown = false; tableDrag.classList.remove('dragging'); });
+    tableDrag.addEventListener('mouseup',     function () { isDown = false; tableDrag.classList.remove('dragging'); });
+    tableDrag.addEventListener('mousemove', function (e) {
         if (!isDown) return;
         e.preventDefault();
-
-        const x = e.pageX - tableDrag.offsetLeft;
-        const walk = (x - startX) * 1.5;
-
-        tableDrag.scrollLeft = scrollLeft - walk;
+        tableDrag.scrollLeft = scrollLeft - (e.pageX - tableDrag.offsetLeft - startX) * 1.5;
     });
 </script>
 

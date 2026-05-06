@@ -1,4 +1,13 @@
-<?php require_once 'config.php'; ?>
+<?php require_once 'config.php';
+
+   if (!isset($_SESSION['user_company']) && isset($_SESSION['user_id'])) {
+       $stmt = $conn->prepare("SELECT company FROM users WHERE id = ?");
+       $stmt->bind_param("i", $_SESSION['user_id']);
+       $stmt->execute();
+       $r = $stmt->get_result()->fetch_assoc();
+       if (!empty($r['company'])) $_SESSION['user_company'] = $r['company'];
+   }
+?>
 <!DOCTYPE html>
 <html lang="en">
 
